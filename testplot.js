@@ -39,18 +39,21 @@ function processData(allText) {
                 dictionary[country] = {};
             }
 
-            date_index = 4;
+            if (country == "Norway"){
+                var a = 2
+            }
+
+            var date_index;
             dates.forEach(function (item, loop_index) {
-                if (loop_index >= date_index) {
-                    var date = item;
-                    var confirmed = parseInt(data[loop_index])
-                    if (confirmed > 0) {
-                        if (date in dictionary[country]) {
-                            dictionary[country][date] += confirmed
-                        }
-                        else {
-                            dictionary[country][date] = confirmed
-                        }
+                date_index = loop_index + 4;
+                var date = item;
+                var confirmed = parseInt(data[date_index])
+                if (confirmed > 0) {
+                    if (date in dictionary[country]) {
+                        dictionary[country][date] += confirmed
+                    }
+                    else {
+                        dictionary[country][date] = confirmed
                     }
                 }
             });
