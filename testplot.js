@@ -1,11 +1,18 @@
 
 
 var dictionary = {};
+var four_parameter_json;
 
 async function main() {
+    $.getJSON("./4pl.json", function(json) {
+        four_parameter_json = json;
+        console.log(json); // this will show the info it in firebug console
+    });
+
+    // console.log(jsontest)
     await getData();
     await new Promise(r => setTimeout(r, 2000));
-    plotData("Norway");
+    plotData("China");
 }
 
 async function getData() {
@@ -77,6 +84,7 @@ async function plotData(country, index) {
     var y_data = $.map(dictionary[country], function (value, key) { return value });
 
     var exp_y_data = [];
+    var logistic_y_data = [];
 
     var point_list = [];
     x_data_label.forEach(function (item, index) {
@@ -86,6 +94,7 @@ async function plotData(country, index) {
     });
 
     var exp_info = getExponentialConstants(point_list, 10)
+    
 
     x_data_index.forEach(function (item, index) {
         exp_y_data.push(exponential(item, exp_info.a, exp_info.b));
@@ -96,7 +105,11 @@ async function plotData(country, index) {
 
     var plot_title = `Cases of Covid-19 in ${country}. \nExponential fit: ${exp_info.a.toFixed(2)}e^${exp_info.b.toFixed(2)} x \nR^2 = ${r2.toFixed(3)}`
 
+
+
     // var plot_title = '$${exp_info.a.toFixed(2)}e^{${exp_info.b.toFixed(2)} x}$'
+
+
 
     var trace1 = {
         x: x_data_label,
@@ -108,7 +121,19 @@ async function plotData(country, index) {
     var trace2 = {
         x: x_data_label,
         y: exp_y_data,
-        name: '$ae^{bx}$',
+        name: '$\\Large y = ae^{bx}$',
+        type: 'scatter'
+    };
+
+    var logistic_info = four_parameter_json[country];
+    x_data_index.forEach(function (item, index) {
+        logistic_y_data.push(logistic(item, logistic_info.A, logistic_info.B, logistic_info.C, logistic_info.D));
+    });
+
+    var trace3 = {
+        x: x_data_label,
+        y: logistic_y_data,
+        name: '$\\Large y = d + \\frac{a - d}{1 + (\\frac{x}{c})^b}$',
         type: 'scatter'
     };
 
@@ -134,7 +159,7 @@ async function plotData(country, index) {
         }
     };
 
-    var data = [trace1, trace2];
+    var data = [trace1, trace2, trace3];
 
     Plotly.newPlot('myDiv', data, layout);
 
@@ -142,6 +167,10 @@ async function plotData(country, index) {
 
 function exponential(x, a, b) {
     return a * Math.exp(b * x);
+}
+
+function logistic(x, a, b, c, d){
+    return d + ((a - d) / (1 + (Math.pow((x/c), b))))
 }
 
 function getExponentialConstants(data, precision) {
