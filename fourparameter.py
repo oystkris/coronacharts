@@ -17,6 +17,9 @@ def curve_fit_fourPL(x_data, y_data):
     A, B, C, D = params[0], params[1], params[2], params[3]
     return A, B, C, D
 
+
+
+
 def get_csv_data():
 
     data = {}
@@ -44,7 +47,7 @@ def get_country_data(data, country):
     return x_data, y_data
 
 if __name__ == "__main__":
-    country = "Norway"
+    country = "Korea, South"
     data = get_csv_data()
 
     x_data, y_data = get_country_data(data, country)

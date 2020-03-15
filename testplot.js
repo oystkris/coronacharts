@@ -61,7 +61,7 @@ function processData(allText) {
     }
 }
 
-async function plotData(country) {
+async function plotData(country, index) {
 
     await getData();
 
