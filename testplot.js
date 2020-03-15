@@ -94,17 +94,21 @@ async function plotData(country) {
     var r2 = determinationCoefficient(point_list, exp_info.points)
     // var r2_rounded = Math.round((r2 + Number.EPSILON) * 100) / 100
 
-    var plot_title = `Cases of Covid-19 in ${country}. \nExponential fit: ${exp_info.string} \nR^2 = ${r2.toFixed(3)}`
+    var plot_title = `Cases of Covid-19 in ${country}. \nExponential fit: ${exp_info.a.toFixed(2)}e^${exp_info.b.toFixed(2)} x \nR^2 = ${r2.toFixed(3)}`
+
+    // var plot_title = '$${exp_info.a.toFixed(2)}e^{${exp_info.b.toFixed(2)} x}$'
 
     var trace1 = {
         x: x_data_label,
         y: y_data,
+        name: 'Confirmed cases',
         type: 'scatter'
     };
 
     var trace2 = {
         x: x_data_label,
         y: exp_y_data,
+        name: '$ae^{bx}$',
         type: 'scatter'
     };
 
