@@ -14,9 +14,13 @@
 </head>
 
 <body>
-	<div id='myDiv'><!-- Plotly chart will be drawn inside this DIV --></div>
-    <script src=testplot.js>
-        
-    </script>
+    <div id='myDiv'><!-- Plotly chart will be drawn inside this DIV --></div>
+    <button onclick="setPreviousDay()">Previous day</button>
+    <button onclick="setNextDay()">Next day</button>
+    <input id="countryInput" list="countries">
+    <datalist onchange="setCountry()" id="countries">
+    </datalist>
+
+    <script src=testplot.js></script>
 </body>
 

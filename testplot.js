@@ -2,6 +2,10 @@
 
 var dictionary = {};
 var four_parameter_json;
+var countries = [];
+var currentCountry = "Norway";
+
+var initNumdays, currentNumDays;
 
 async function main() {
     $.getJSON("./4pl.json", function(json) {
@@ -12,7 +16,8 @@ async function main() {
     // console.log(jsontest)
     await getData();
     await new Promise(r => setTimeout(r, 2000));
-    plotData("China");
+
+    plotData(currentCountry);
 }
 
 async function getData() {
@@ -44,6 +49,7 @@ function processData(allText) {
             var country = data[1];
             if (!(country in dictionary)) {
                 dictionary[country] = {};
+                countries.push(country);
             }
 
             if (country == "Norway"){
@@ -64,13 +70,22 @@ function processData(allText) {
                     }
                 }
             });
+
         }
     }
+    // Set values in country drowdown
+    var options = '';
+
+    countries.sort();
+
+    for(var i = 0; i < countries.length; i++) {
+        options += '<option value="' + countries[i] + '" />';
+    }
+  
+    document.getElementById('countries').innerHTML = options;
 }
 
-async function plotData(country, index) {
-
-    await getData();
+async function plotData(country, numDays) {
 
     console.log("dict:")
 
@@ -80,8 +95,20 @@ async function plotData(country, index) {
     console.log(dictionary[country])
 
     var x_data_label = $.map(dictionary[country], function (value, key) { return key });
-    var x_data_index = []
+    initNumdays = x_data_label.length;
+    if (!numDays) {
+        currentNumDays = initNumdays;
+    }
+
+    var x_data_index = [];
+    if (numDays) {
+        x_data_label = x_data_label.slice(0, numDays);
+    }
+    
     var y_data = $.map(dictionary[country], function (value, key) { return value });
+    if (numDays) {
+        y_data = y_data.slice(0, numDays);
+    }
 
     var exp_y_data = [];
     var logistic_y_data = [];
@@ -90,7 +117,7 @@ async function plotData(country, index) {
     x_data_label.forEach(function (item, index) {
         x_data_index.push(index)
         point = [index, y_data[index]];
-        point_list.push(point);
+        point_list.push(point); 
     });
 
     var exp_info = getExponentialConstants(point_list, 10)
@@ -238,5 +265,28 @@ function determinationCoefficient(data, results) {
 
     return 1 - (sse / ssyy);
 }
+
+function setPreviousDay() {
+    if (currentNumDays > 0) {
+        currentNumDays--;
+        plotData(currentCountry, currentNumDays)
+    }
+}
+
+function setNextDay() {
+    if (currentNumDays < initNumdays) {
+        currentNumDays++;
+        plotData(currentCountry, currentNumDays)
+    }
+}
+
+document.getElementById('countryInput').addEventListener('input', function () {
+    var val = document.getElementById("countryInput").value;
+    
+    if (val) {
+        currentCountry = val;
+        plotData(currentCountry);
+    }
+});
 
 main();
