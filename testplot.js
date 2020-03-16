@@ -157,27 +157,34 @@ async function plotData(country, numDays) {
 
     var log_point_list = [];
     var lginf = four_parameter_json[country][final_date];
-    x_data_index.forEach(function (x, index) {
-        var logistic_y = logistic(x, lginf.A, lginf.B, lginf.C, lginf.D)
-        logistic_y_data.push(logistic_y);
-        log_point_list.push([x, logistic_y])
-    });
 
-    var log_r2 = determinationCoefficient(point_list, log_point_list);
-    var log_r2_eq = MathJax.Hub.getAllJax("LogisticR2")[0];
-    var log_eq = MathJax.Hub.getAllJax("LogisticEquation")[0];
-    MathJax.Hub.Queue(["Text", log_r2_eq, '\\LARGE r^2:' + log_r2.toFixed(4).toString() + '']);
-    var logistic_eq = '\\Large y = ' + lginf.D.toFixed(2).toString() + ' + \\frac{' + lginf.A.toFixed(2).toString() + ' - ' + lginf.D.toFixed(2).toString() + '}{1 + (\\frac{x}{' + lginf.C.toFixed(2).toString() + '})^{' + lginf.B.toFixed(2).toString() + '}}';
-    MathJax.Hub.Queue(["Text", log_eq, logistic_eq]);
-    console.log(logistic_eq)
-    
-    var trace3 = {
-        x: x_data_label,
-        y: logistic_y_data,
-        name: '$\\Large y = d + \\frac{a - d}{1 + (\\frac{x}{c})^b}$',
-        type: 'scatter'
-    };
+    if (lginf != null){
+        x_data_index.forEach(function (x, index) {
+            var logistic_y = logistic(x, lginf.A, lginf.B, lginf.C, lginf.D)
+            logistic_y_data.push(logistic_y);
+            log_point_list.push([x, logistic_y])
+        });
 
+        var log_r2 = determinationCoefficient(point_list, log_point_list);
+        var log_r2_eq = MathJax.Hub.getAllJax("LogisticR2")[0];
+        var log_eq = MathJax.Hub.getAllJax("LogisticEquation")[0];
+        MathJax.Hub.Queue(["Text", log_r2_eq, '\\LARGE r^2:' + log_r2.toFixed(4).toString() + '']);
+        var logistic_eq = '\\Large y = ' + lginf.D.toFixed(2).toString() + ' + \\frac{' + lginf.A.toFixed(2).toString() + ' - ' + lginf.D.toFixed(2).toString() + '}{1 + (\\frac{x}{' + lginf.C.toFixed(2).toString() + '})^{' + lginf.B.toFixed(2).toString() + '}}';
+        MathJax.Hub.Queue(["Text", log_eq, logistic_eq]);
+        console.log(logistic_eq)
+        
+        var trace3 = {
+            x: x_data_label,
+            y: logistic_y_data,
+            name: '$\\Large y = d + \\frac{a - d}{1 + (\\frac{x}{c})^b}$',
+            type: 'scatter'
+        };
+
+        var data = [trace1, trace2, trace3];
+    }
+    else {
+        var data = [trace1, trace2];
+    }
     var layout = {
         title: {
             text: plot_title,
@@ -199,8 +206,6 @@ async function plotData(country, numDays) {
             anchor: "y2"
         }
     };
-
-    var data = [trace1, trace2, trace3];
 
     Plotly.newPlot('myDiv', data, layout);
 
@@ -295,6 +300,29 @@ function setNextDay() {
         plotData(currentCountry, currentNumDays)
     }
 }
+
+function setPreviousWeek(){
+    if (currentNumDays - 7 > 0) {
+        currentNumDays = currentNumDays - 7;
+        plotData(currentCountry, currentNumDays)
+    }
+    else{
+        currentNumDays = 1;
+        plotData(currentCountry, currentNumDays)
+    }
+}
+
+function setNextWeek() {
+    if (currentNumDays + 7 < initNumdays) {
+        currentNumDays = currentNumDays + 7;
+        plotData(currentCountry, currentNumDays)
+    }
+    else{
+        currentNumDays = initNumdays;
+        plotData(currentCountry, currentNumDays)
+    }
+}
+
 
 document.getElementById('countryInput').addEventListener('input', function () {
     var val = document.getElementById("countryInput").value;

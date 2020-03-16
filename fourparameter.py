@@ -54,7 +54,7 @@ def get_csv_data():
 
     data = {}
     df = pandas.read_csv(r"https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv")
-
+    df['Country/Region'].replace(["Korea, South"], 'South Korea', inplace=True)
     dates = list(df.columns.values)[4:]
     for index, row in df.iterrows():
         country = row['Country/Region']
