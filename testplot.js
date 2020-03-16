@@ -34,6 +34,7 @@ async function getData() {
 }
 
 function processData(allText) {
+    var allText = allText.replace("\"Korea, South\"", "South Korea");
     var allTextLines = allText.split(/\r\n|\n/);
     var headers = allTextLines[0].split(',');
     var dates = headers.slice(Math.max(headers.length - (headers.length - 4), 1))
