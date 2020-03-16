@@ -95,6 +95,7 @@ async function plotData(country, numDays) {
     console.log(dictionary[country])
 
     var x_data_label = $.map(dictionary[country], function (value, key) { return key });
+    
     initNumdays = x_data_label.length;
     if (!numDays) {
         currentNumDays = initNumdays;
@@ -104,6 +105,8 @@ async function plotData(country, numDays) {
     if (numDays) {
         x_data_label = x_data_label.slice(0, numDays);
     }
+
+    var final_date = x_data_label.slice(-1)[0] 
     
     var y_data = $.map(dictionary[country], function (value, key) { return value });
     if (numDays) {
@@ -121,22 +124,21 @@ async function plotData(country, numDays) {
     });
 
     var exp_info = getExponentialConstants(point_list, 10)
-    
 
     x_data_index.forEach(function (item, index) {
         exp_y_data.push(exponential(item, exp_info.a, exp_info.b));
     });
 
-    var r2 = determinationCoefficient(point_list, exp_info.points)
-    // var r2_rounded = Math.round((r2 + Number.EPSILON) * 100) / 100
+    var exp_r2 = determinationCoefficient(point_list, exp_info.points)
 
-    var plot_title = `Cases of Covid-19 in ${country}. \nExponential fit: ${exp_info.a.toFixed(2)}e^${exp_info.b.toFixed(2)} x \nR^2 = ${r2.toFixed(3)}`
+    var exp_r2_eq = MathJax.Hub.getAllJax("ExponentialR2")[0];
+    var exp_eq = MathJax.Hub.getAllJax("ExponentialEquation")[0];
+    MathJax.Hub.Queue(["Text", exp_r2_eq, '\\LARGE r^2:' + exp_r2.toFixed(4).toString() + '.']);
+    MathJax.Hub.Queue(["Text", exp_eq, '\\LARGE y = ' + exp_info.a.toFixed(2).toString() + 'e^{' + exp_info.b.toFixed(2).toString() + 'x}']);
 
-
+    var plot_title = `Cases of Covid-19 in ${country}. \nExponential fit: ${exp_info.a.toFixed(2)}e^${exp_info.b.toFixed(2)} x \nR^2 = ${exp_r2.toFixed(3)}`
 
     // var plot_title = '$${exp_info.a.toFixed(2)}e^{${exp_info.b.toFixed(2)} x}$'
-
-
 
     var trace1 = {
         x: x_data_label,
@@ -152,11 +154,22 @@ async function plotData(country, numDays) {
         type: 'scatter'
     };
 
-    var logistic_info = four_parameter_json[country];
-    x_data_index.forEach(function (item, index) {
-        logistic_y_data.push(logistic(item, logistic_info.A, logistic_info.B, logistic_info.C, logistic_info.D));
+    var log_point_list = [];
+    var lginf = four_parameter_json[country][final_date];
+    x_data_index.forEach(function (x, index) {
+        var logistic_y = logistic(x, lginf.A, lginf.B, lginf.C, lginf.D)
+        logistic_y_data.push(logistic_y);
+        log_point_list.push([x, logistic_y])
     });
 
+    var log_r2 = determinationCoefficient(point_list, log_point_list);
+    var log_r2_eq = MathJax.Hub.getAllJax("LogisticR2")[0];
+    var log_eq = MathJax.Hub.getAllJax("LogisticEquation")[0];
+    MathJax.Hub.Queue(["Text", log_r2_eq, '\\LARGE r^2:' + log_r2.toFixed(4).toString() + '']);
+    var logistic_eq = '\\Large y = ' + lginf.D.toFixed(2).toString() + ' + \\frac{' + lginf.A.toFixed(2).toString() + ' - ' + lginf.D.toFixed(2).toString() + '}{1 + (\\frac{x}{' + lginf.C.toFixed(2).toString() + '})^{' + lginf.B.toFixed(2).toString() + '}}';
+    MathJax.Hub.Queue(["Text", log_eq, logistic_eq]);
+    console.log(logistic_eq)
+    
     var trace3 = {
         x: x_data_label,
         y: logistic_y_data,
@@ -189,6 +202,8 @@ async function plotData(country, numDays) {
     var data = [trace1, trace2, trace3];
 
     Plotly.newPlot('myDiv', data, layout);
+
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
 
 }
 

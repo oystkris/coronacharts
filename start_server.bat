@@ -1,0 +1,1 @@
+call "%PROGRAMFILES%\ArcGIS\Pro\bin\Python\Scripts\propy" -m http.server --cgi 8000
