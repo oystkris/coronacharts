@@ -136,7 +136,7 @@ async function plotData(country, numDays) {
     MathJax.Hub.Queue(["Text", exp_r2_eq, '\\LARGE r^2:' + exp_r2.toFixed(4).toString() + '.']);
     MathJax.Hub.Queue(["Text", exp_eq, '\\LARGE y = ' + exp_info.a.toFixed(2).toString() + 'e^{' + exp_info.b.toFixed(2).toString() + 'x}']);
 
-    var plot_title = `Cases of Covid-19 in ${country}. \nExponential fit: ${exp_info.a.toFixed(2)}e^${exp_info.b.toFixed(2)} x \nR^2 = ${exp_r2.toFixed(3)}`
+    var plot_title = `Cases of Covid-19 in ${country} `
 
     // var plot_title = '$${exp_info.a.toFixed(2)}e^{${exp_info.b.toFixed(2)} x}$'
 
