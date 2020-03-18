@@ -17,7 +17,7 @@ async function main() {
     await getData();
     await new Promise(r => setTimeout(r, 2000));
 
-    plotData(currentCountry);
+    refreshAllData(currentCountry, null);
 }
 
 async function getData() {
@@ -86,14 +86,41 @@ function processData(allText) {
     document.getElementById('countries').innerHTML = options;
 }
 
+async function refreshAllData(country, numDays){
+    let plotParameters = await plotData(country, numDays);
+    await drawEquations(plotParameters)
+}
+
+async function drawEquations(parameters){
+
+    exponential_r2 = '\\LARGE r^2 = ' + parameters.exponentialTrace.r2.toFixed(4).toString();
+    exponential_eq = '\\LARGE y = ' + parameters.exponentialTrace.a.toFixed(2).toString() + 'e^{' + parameters.exponentialTrace.b.toFixed(2).toString() + 'x}'
+
+    var exp_r2_eq = document.getElementById('ExponentialR2');
+    katex.render(exponential_r2, exp_r2_eq, {
+        throwOnError: false
+    });
+
+    var exp_eq = document.getElementById('ExponentialEquation');
+    katex.render(exponential_eq, exp_eq, {
+        throwOnError: false
+    });
+
+    var logistic_r2 = '\\LARGE r^2 = ' + parameters.logisticTrace.r2.toFixed(4).toString() + ''
+    var logistic_eq = '\\LARGE y = ' + parameters.logisticTrace.d.toFixed(2).toString() + ' + \\frac{' + parameters.logisticTrace.a.toFixed(2).toString() + ' - ' + parameters.logisticTrace.d.toFixed(2).toString() + '}{1 + (\\frac{x}{' + parameters.logisticTrace.c.toFixed(2).toString() + '})^{' + parameters.logisticTrace.b.toFixed(2).toString() + '}}';
+
+    var log_r2_eq = document.getElementById('LogisticR2');
+    katex.render(logistic_r2, log_r2_eq, {
+        throwOnError: false
+    });
+
+    var log_eq = document.getElementById('LogisticEquation');
+    katex.render(logistic_eq, log_eq, {
+        throwOnError: false
+    });
+}
+
 async function plotData(country, numDays) {
-
-    console.log("dict:")
-
-    console.log(dictionary)
-
-    console.log(country)
-    console.log(dictionary[country])
 
     var x_data_label = $.map(dictionary[country], function (value, key) { return key });
     
@@ -102,81 +129,33 @@ async function plotData(country, numDays) {
         currentNumDays = initNumdays;
     }
 
-    var x_data_index = [];
-    if (numDays) {
-        x_data_label = x_data_label.slice(0, numDays);
-    }
+    var confirmedCasesTrace = getConfirmedCasesTrace(x_data_label, country, numDays);
+    var final_date = confirmedCasesTrace.x_data.slice(-1)[0]
 
-    var final_date = x_data_label.slice(-1)[0] 
-    
-    var y_data = $.map(dictionary[country], function (value, key) { return value });
-    if (numDays) {
-        y_data = y_data.slice(0, numDays);
-    }
-
-    var exp_y_data = [];
-    var logistic_y_data = [];
-
-    var point_list = [];
-    x_data_label.forEach(function (item, index) {
-        x_data_index.push(index)
-        point = [index, y_data[index]];
-        point_list.push(point); 
-    });
-
-    var exp_info = getExponentialConstants(point_list, 10)
-
-    x_data_index.forEach(function (item, index) {
-        exp_y_data.push(exponential(item, exp_info.a, exp_info.b));
-    });
-
-    var exp_r2 = determinationCoefficient(point_list, exp_info.points)
-
-    var exp_r2_eq = MathJax.Hub.getAllJax("ExponentialR2")[0];
-    var exp_eq = MathJax.Hub.getAllJax("ExponentialEquation")[0];
-    MathJax.Hub.Queue(["Text", exp_r2_eq, '\\LARGE r^2:' + exp_r2.toFixed(4).toString() + '.']);
-    MathJax.Hub.Queue(["Text", exp_eq, '\\LARGE y = ' + exp_info.a.toFixed(2).toString() + 'e^{' + exp_info.b.toFixed(2).toString() + 'x}']);
+    var exponentialTrace = getExponentialTrace(confirmedCasesTrace.x_data, confirmedCasesTrace.y_data);
+    var logisticTrace = getLogisticTrace(confirmedCasesTrace.x_data, confirmedCasesTrace.y_data, country, final_date);
 
     var plot_title = `Cases of Covid-19 in ${country} `
 
-    // var plot_title = '$${exp_info.a.toFixed(2)}e^{${exp_info.b.toFixed(2)} x}$'
-
     var trace1 = {
-        x: x_data_label,
-        y: y_data,
+        x: confirmedCasesTrace.x_data,
+        y: confirmedCasesTrace.y_data,
         name: 'Confirmed cases',
         type: 'scatter'
     };
 
     var trace2 = {
-        x: x_data_label,
-        y: exp_y_data,
-        name: '$\\Large y = ae^{bx}$',
+        x: exponentialTrace.x_data,
+        y: exponentialTrace.y_data,
+        name: 'logistic',
         type: 'scatter'
     };
-
-    var log_point_list = [];
-    var lginf = four_parameter_json[country][final_date];
-
-    if (lginf != null){
-        x_data_index.forEach(function (x, index) {
-            var logistic_y = logistic(x, lginf.A, lginf.B, lginf.C, lginf.D)
-            logistic_y_data.push(logistic_y);
-            log_point_list.push([x, logistic_y])
-        });
-
-        var log_r2 = determinationCoefficient(point_list, log_point_list);
-        var log_r2_eq = MathJax.Hub.getAllJax("LogisticR2")[0];
-        var log_eq = MathJax.Hub.getAllJax("LogisticEquation")[0];
-        MathJax.Hub.Queue(["Text", log_r2_eq, '\\LARGE r^2:' + log_r2.toFixed(4).toString() + '']);
-        var logistic_eq = '\\Large y = ' + lginf.D.toFixed(2).toString() + ' + \\frac{' + lginf.A.toFixed(2).toString() + ' - ' + lginf.D.toFixed(2).toString() + '}{1 + (\\frac{x}{' + lginf.C.toFixed(2).toString() + '})^{' + lginf.B.toFixed(2).toString() + '}}';
-        MathJax.Hub.Queue(["Text", log_eq, logistic_eq]);
-        console.log(logistic_eq)
         
+    if (logisticTrace.x_data != null) {
         var trace3 = {
-            x: x_data_label,
-            y: logistic_y_data,
-            name: '$\\Large y = d + \\frac{a - d}{1 + (\\frac{x}{c})^b}$',
+            x: logisticTrace.x_data,
+            y: logisticTrace.y_data,
+            name: 'exponential',
             type: 'scatter'
         };
 
@@ -196,20 +175,106 @@ async function plotData(country, numDays) {
             x: 0.05,
         },
         width: 1500,
-        height: 900,
-        yaxis2: {
-            domain: [0.6, 0.95],
-            anchor: "x2"
-        },
-        xaxis2: {
-            domain: [0.6, 0.95],
-            anchor: "y2"
-        }
+        height: 900
     };
 
-    Plotly.newPlot('myDiv', data, layout);
+    Plotly.newPlot('mainPlot', data, layout);
 
-    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    return{
+        confirmedCasesTrace,
+        exponentialTrace,
+        logisticTrace
+    };
+}
+
+function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
+
+    var log_point_list = [];
+    var lginf = four_parameter_json[country][finalDate];
+
+    if (lginf != null){
+        var x_data_index = [];
+        var logistic_y_data = [];
+    
+        x_data.forEach(function (item, index) {
+            x_data_index.push(index)
+        });
+
+        x_data_index.forEach(function (x, index) {
+            var logistic_y = logistic(x, lginf.A, lginf.B, lginf.C, lginf.D)
+            logistic_y_data.push(logistic_y);
+            log_point_list.push([x, logistic_y])
+        });
+
+        var r2 = determinationCoefficient(x_data, confirmed_y_data, log_point_list);
+        return{
+            x_data,
+            y_data: logistic_y_data,
+            a: lginf.A,
+            b: lginf.B, 
+            c: lginf.C, 
+            d: lginf.D,
+            r2
+        }
+    }
+    else{
+        return{
+            x_data: null,
+            y_data: null,
+            a: null,
+            b: null,
+            c: null,
+            d: null,
+            r2: null
+        }
+    }
+}
+
+function getConfirmedCasesTrace(x_data_label, country, numDays){
+    // leave only days from 0 - numDays
+
+    var x_data = x_data_label
+    if (numDays) {
+        x_data = x_data_label.slice(0, numDays);
+    }
+
+    var y_data = $.map(dictionary[country], function (value, key) { return value });
+    if (numDays) {
+        y_data = y_data.slice(0, numDays);
+    }
+    return{
+        x_data,
+        y_data
+    }
+}
+
+function getExponentialTrace(x_data, confirmed_y_data){
+    var x_data_index = [];
+    var y_data = [];
+    var logistic_y_data = [];
+
+    x_data.forEach(function (item, index) {
+        x_data_index.push(index)
+    });
+
+    var exp_info = getExponentialConstants(x_data_index, confirmed_y_data, 10);
+
+    x_data_index.forEach(function (item, index) {
+        y_data.push(exponential(item, exp_info.a, exp_info.b));
+    });
+
+    var r2 = determinationCoefficient(x_data_index, y_data, exp_info.points);
+
+    var a = exp_info.a;
+    var b = exp_info.b;
+
+    return{
+        x_data,
+        y_data,
+        a,
+        b,
+        r2
+    }
 
 }
 
@@ -221,8 +286,14 @@ function logistic(x, a, b, c, d){
     return d + ((a - d) / (1 + (Math.pow((x/c), b))))
 }
 
-function getExponentialConstants(data, precision) {
+function getExponentialConstants(x_data, y_data, precision) {
     // https://github.com/Tom-Alexander/regression-js/blob/master/src/regression.js
+    var data = [];
+    x_data.forEach(function (item, index) {
+        point = [item, y_data[index]];
+        data.push(point); 
+    });
+
     const sum = [0, 0, 0, 0, 0, 0];
 
     for (let n = 0; n < data.length; n++) {
@@ -252,16 +323,19 @@ function getExponentialConstants(data, precision) {
         points,
         a,
         b,
-        equation: [coeffA, coeffB],
-        string: `y = ${a.toFixed(2)}e^(${b.toFixed(2)}x)`
-        // r2: Math.round(determinationCoefficient(data, points), precision),
     };
 }
 
-function determinationCoefficient(data, results) {
+function determinationCoefficient(x_data, y_data, results) {
     // https://github.com/Tom-Alexander/regression-js/blob/master/src/regression.js
+    var data = [];
     const predictions = [];
     const observations = [];
+
+    x_data.forEach(function (item, index) {
+        point = [item, y_data[index]];
+        data.push(point); 
+    });
 
     data.forEach((d, i) => {
         if (d[1] !== null) {
@@ -290,36 +364,36 @@ function determinationCoefficient(data, results) {
 function setPreviousDay() {
     if (currentNumDays > 0) {
         currentNumDays--;
-        plotData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays)
     }
 }
 
 function setNextDay() {
     if (currentNumDays < initNumdays) {
         currentNumDays++;
-        plotData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays)
     }
 }
 
 function setPreviousWeek(){
     if (currentNumDays - 7 > 0) {
         currentNumDays = currentNumDays - 7;
-        plotData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays)
     }
     else{
         currentNumDays = 1;
-        plotData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays)
     }
 }
 
 function setNextWeek() {
     if (currentNumDays + 7 < initNumdays) {
         currentNumDays = currentNumDays + 7;
-        plotData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays)
     }
     else{
         currentNumDays = initNumdays;
-        plotData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays)
     }
 }
 
@@ -329,7 +403,7 @@ document.getElementById('countryInput').addEventListener('input', function () {
     
     if (val) {
         currentCountry = val;
-        plotData(currentCountry);
+        refreshAllData(currentCountry);
     }
 });
 
