@@ -93,8 +93,20 @@ async function refreshAllData(country, numDays){
 
 async function drawEquations(parameters){
 
+    var y_n = parameters.confirmedCasesTrace.y_data.slice(-1)[0];
+    var y_n_1 = parameters.confirmedCasesTrace.y_data.slice(-2)[0];
+    var growthFactor = y_n / y_n_1;
+
+    growth_factor_r2 = '\\LARGE \\frac{Δ N_d}{Δ N_{d-1}} = ' + growthFactor.toFixed(2).toString();
+
+    var gf_eq = document.getElementById('GrowthFactorEquation');
+    katex.render(growth_factor_r2, gf_eq, {
+        throwOnError: false
+    });
+
+
     exponential_r2 = '\\LARGE r^2 = ' + parameters.exponentialTrace.r2.toFixed(4).toString();
-    exponential_eq = '\\LARGE y = ' + parameters.exponentialTrace.a.toFixed(2).toString() + 'e^{' + parameters.exponentialTrace.b.toFixed(2).toString() + 'x}'
+    exponential_eq = '\\LARGE y = ' + parameters.exponentialTrace.a.toFixed(2).toString() + 'e^{' + parameters.exponentialTrace.b.toFixed(2).toString() + 'x}';
 
     var exp_r2_eq = document.getElementById('ExponentialR2');
     katex.render(exponential_r2, exp_r2_eq, {
@@ -251,7 +263,6 @@ function getConfirmedCasesTrace(x_data_label, country, numDays){
 function getExponentialTrace(x_data, confirmed_y_data){
     var x_data_index = [];
     var y_data = [];
-    var logistic_y_data = [];
 
     x_data.forEach(function (item, index) {
         x_data_index.push(index)
@@ -263,7 +274,7 @@ function getExponentialTrace(x_data, confirmed_y_data){
         y_data.push(exponential(item, exp_info.a, exp_info.b));
     });
 
-    var r2 = determinationCoefficient(x_data_index, y_data, exp_info.points);
+    var r2 = determinationCoefficient(x_data_index, confirmed_y_data, exp_info.points);
 
     var a = exp_info.a;
     var b = exp_info.b;
