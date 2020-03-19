@@ -152,7 +152,7 @@ async function plotData(country, numDays) {
 
     // var plot_title = `Cases of Covid-19 in ${country} `;
     var plot_title = `<b>Cases of Covid-19 in ${country}</b><br>Total ${logisticTrace.d.toFixed(0)} confirmed cases predicted from logistic model`
-    plot_title = plot_title + '<br><sup><i>See model parameters below</i></sup>'
+    plot_title = plot_title + '<br><sup><i>See model parameters in sidebar</i></sup>'
 
     var trace1 = {
         x: confirmedCasesTrace.x_data,
