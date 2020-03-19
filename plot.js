@@ -202,6 +202,12 @@ async function plotData(country, numDays) {
             xref: 'paper',
             x: 0.05,
         },
+        showlegend: true,
+        legend: {
+            x: 1,
+            xanchor: 'right',
+            y: 1
+        },
         width: 1500,
         height: 900,
         bargap: 20.0
