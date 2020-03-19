@@ -145,14 +145,16 @@ async function plotData(country, numDays) {
 
     var confirmedCasesTrace = getConfirmedCasesTrace(x_data_label, country, numDays);
     var final_date = confirmedCasesTrace.x_data.slice(-1)[0];
+    var final_confirmed = confirmedCasesTrace.y_data.slice(-1)[0];
     var date = dateToDateObj(final_date);
+    // const day = date.toLocaleString('default', { day: 'long' });
+    var day = date.getDate();
+    var month = date.toLocaleString('default', { month: 'long' });
 
     var exponentialTrace = getExponentialTrace(confirmedCasesTrace.x_data, confirmedCasesTrace.y_data);
     var logisticTrace = getLogisticTrace(confirmedCasesTrace.x_data, confirmedCasesTrace.y_data, country, final_date);
 
-    // var plot_title = `Cases of Covid-19 in ${country} `;
-    var plot_title = `<b>Cases of Covid-19 in ${country}</b><br>Total ${logisticTrace.d.toFixed(0)} confirmed cases predicted from logistic model`
-    plot_title = plot_title + '<br><sup><i>See model parameters in sidebar</i></sup>'
+
 
     var trace1 = {
         x: confirmedCasesTrace.x_data,
@@ -192,6 +194,18 @@ async function plotData(country, numDays) {
     else {
         var data = [trace1, trace2];
     }
+
+    // var plot_title = `Cases of Covid-19 in ${country} `;
+    var plot_title = `<b>Cases of Covid-19 in ${country}</b>`;
+    if (logisticTrace.x_data != null) {
+        plot_title = plot_title + `<br>Prediction logistic model: maximum <b>${logisticTrace.d.toFixed(0)}</b> confirmed cases`;
+    }
+    plot_title = plot_title + `<br><sup><i>Confirmed cases as of ${day} ${month} ${date.getFullYear()}: <b>${final_confirmed}</b></i></sup>`;
+    plot_title = plot_title + '<br><sup><i>See model parameters in sidebar</i></sup>';
+    
+
+
+
     var layout = {
         title: {
             text: plot_title,
@@ -199,6 +213,8 @@ async function plotData(country, numDays) {
                 family: 'Courier New, monospace',
                 size: 24
             },
+            xanchor: 'left',
+            yanchor: 'top',
             xref: 'paper',
             x: 0.05,
         },
