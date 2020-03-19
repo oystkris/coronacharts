@@ -92,6 +92,9 @@ async function refreshAllData(country, numDays){
 
 async function drawEquations(parameters){
 
+    document.getElementById("country_p").innerHTML = `${parameters.country}`;
+    document.getElementById("date_p").innerHTML = `${parameters.finalDateObj.getDate()} ${parameters.finalDateObj.toLocaleString('default', { month: 'long' })} ${parameters.finalDateObj.getFullYear()}</b>`;
+
     const eq_size = "\\Large";
 
     var y_n = parameters.confirmedCasesTrace.y_data.slice(-1)[0];
@@ -233,12 +236,12 @@ async function plotData(country, numDays) {
         },
         showlegend: true,
         legend: {
-            x: 0.16,
+            x: 0.18,
             xanchor: 'right',
             y: 0.9
         },
-        width: 1500,
-        height: 900,
+        width: 1475,
+        height: 855,
         bargap: 20.0
     };
 
@@ -247,7 +250,9 @@ async function plotData(country, numDays) {
     return{
         confirmedCasesTrace,
         exponentialTrace,
-        logisticTrace
+        logisticTrace,
+        country,
+        finalDateObj: date
     };
 }
 
@@ -318,7 +323,10 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
             x_data_predict_index.push(data_index);
             x_data_predict.push(label);
             y_data_predict.push(logistic_y);
-            // break;
+
+            if (data_index > 28835){
+                break;
+            }
         }
 
         return{
