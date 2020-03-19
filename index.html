@@ -21,28 +21,31 @@
 
 
 <body>
-    <div id='mainPlot'>
-        <!-- Plotly chart will be drawn inside this DIV -->
+    <div style="display: flex;">
+        <div id='mainPlot'>
+            <!-- Plotly chart will be drawn inside this DIV -->
+            <div style="text-align: center;">
+                <button onclick="setPreviousWeek()">Previous week</button>
+                <button onclick="setPreviousDay()">Previous day</button>
+                <button onclick="setNextDay()">Next day</button>
+                <button onclick="setNextWeek()">Next week</button>
+                <input id="countryInput" list="countries">
+                <datalist onchange="setCountry()" id="countries">
+                </datalist>
+            </div>
+        </div>
+        <div style="padding-top: 200px;">
+            <span style="font-size: 18pt" style="margin-top: 0.5em;"><b>Growth factor</b></span>
+            <div id="GrowthFactorEquation" style="margin-top: 0.5em;"></div>
+            <span style="font-size: 18pt;margin-top: 2.5em;"><b>Logistic model</b></span>
+            <div id="LogisticTotalConfirmed" style="margin-top: 0.5;"></div>
+            <div id="LogisticR2" style="margin-top: 0.5em;"></div>
+            <div id="LogisticEquation" style="margin-top: 0.5em;"></div>
+            <span style="font-size: 18pt" style="margin-top: 1.5;"><b>Exponential model</b></span>
+            <div id="ExponentialR2" style="margin-top: 0.5em;"></div>
+            <div type="math/tex; mode=display" id="ExponentialEquation" style="margin-top: 0.5em;margin-bottom: 0.5em;"></div>
+        </div>
     </div>
-    <button onclick="setPreviousWeek()">Previous week</button>
-    <button onclick="setPreviousDay()">Previous day</button>
-    <button onclick="setNextDay()">Next day</button>
-    <button onclick="setNextWeek()">Next week</button>
-    <input id="countryInput" list="countries">
-    <datalist onchange="setCountry()" id="countries">
-    </datalist>
-
-    <div></div>
-
-    <span style="font-size: 18pt" style="margin-top: 0.5em;"><b>Growth factor</b></span>
-    <div id="GrowthFactorEquation" style="margin-top: 0.5em;"></div>
-    <span style="font-size: 18pt;margin-top: 2.5em;"><b>Logistic model</b></span>
-    <div id="LogisticTotalConfirmed" style="margin-top: 0.5;"></div>
-    <div id="LogisticR2" style="margin-top: 0.5em;"></div>
-    <div id="LogisticEquation" style="margin-top: 0.5em;"></div>
-    <span style="font-size: 18pt" style="margin-top: 1.5;"><b>Exponential model</b></span>
-    <div id="ExponentialR2" style="margin-top: 0.5em;"></div>
-    <div type="math/tex; mode=display" id="ExponentialEquation" style="margin-top: 0.5em;margin-bottom: 0.5em;"></div>
 
     <script src=plot.js></script>
 
