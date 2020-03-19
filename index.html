@@ -30,18 +30,22 @@
                 <button onclick="setNextDay()">Next day</button>
                 <button onclick="setNextWeek()">Next week</button>
                 <input id="countryInput" list="countries">
-                <datalist onchange="setCountry()" id="countries">
-                </datalist>
+                <datalist onchange="setCountry()" id="countries"></datalist>
+                <p style="font-size:80%;font-family:'Courier New', Courier, monospace">Created by Øystein Kristoffersen</p>
             </div>
         </div>
         <div style="padding-top: 200px;">
-            <span style="font-size: 18pt" style="margin-top: 0.5em;"><b>Growth factor</b></span>
+            <span style="font-size: 18pt;margin-top: 0.5em;font-family:'Courier New', Courier, monospace"><b>Growth factor</b></span>
             <div id="GrowthFactorEquation" style="margin-top: 0.5em;"></div>
-            <span style="font-size: 18pt;margin-top: 2.5em;"><b>Logistic model</b></span>
+            <span style="font-size: 18pt;margin-top: 2.5em;font-family:'Courier New', Courier, monospace"><b><br>Logistic model</b></span>
+            <!-- <p style="font-size:140%;">inflection point:</p> -->
+            <p id="inflectionDate" style="font-size:120%;font-family:'Courier New', Courier, monospace"></p>
+            <!-- <p style="font-size:140%;">max point:</p> -->
+            <p id="percent98Date" style="font-size:120%;font-family:'Courier New', Courier, monospace"></p>
             <div id="LogisticTotalConfirmed" style="margin-top: 0.5;"></div>
             <div id="LogisticR2" style="margin-top: 0.5em;"></div>
             <div id="LogisticEquation" style="margin-top: 0.5em;"></div>
-            <span style="font-size: 18pt" style="margin-top: 1.5;"><b>Exponential model</b></span>
+            <span style="font-size: 18pt;margin-top: 2.5em;font-family:'Courier New', Courier, monospace"><b><br>Exponential model</b></span>
             <div id="ExponentialR2" style="margin-top: 0.5em;"></div>
             <div type="math/tex; mode=display" id="ExponentialEquation" style="margin-top: 0.5em;margin-bottom: 0.5em;"></div>
         </div>
