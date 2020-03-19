@@ -13,7 +13,6 @@ async function main() {
         console.log(json); // this will show the info it in firebug console
     });
 
-    // console.log(jsontest)
     await getData();
     await new Promise(r => setTimeout(r, 2000));
 
@@ -135,40 +134,57 @@ async function drawEquations(parameters){
 async function plotData(country, numDays) {
 
     var x_data_label = $.map(dictionary[country], function (value, key) { return key });
-    
+    x_data_label.sort(function(a,b){
+        return dateToDateObj(b) - dateToDateObj(a);
+    }).reverse();
+
     initNumdays = x_data_label.length;
     if (!numDays) {
         currentNumDays = initNumdays;
     }
 
     var confirmedCasesTrace = getConfirmedCasesTrace(x_data_label, country, numDays);
-    var final_date = confirmedCasesTrace.x_data.slice(-1)[0]
+    var final_date = confirmedCasesTrace.x_data.slice(-1)[0];
+    var date = dateToDateObj(final_date);
 
     var exponentialTrace = getExponentialTrace(confirmedCasesTrace.x_data, confirmedCasesTrace.y_data);
     var logisticTrace = getLogisticTrace(confirmedCasesTrace.x_data, confirmedCasesTrace.y_data, country, final_date);
 
-    var plot_title = `Cases of Covid-19 in ${country} `
+    // var plot_title = `Cases of Covid-19 in ${country} `;
+    var plot_title = `<b>Cases of Covid-19 in ${country}</b><br>Total ${logisticTrace.d.toFixed(0)} confirmed cases predicted from logistic model`
+    plot_title = plot_title + '<br><sup><i>See model parameters below</i></sup>'
 
     var trace1 = {
         x: confirmedCasesTrace.x_data,
         y: confirmedCasesTrace.y_data,
         name: 'Confirmed cases',
-        type: 'scatter'
+        type: 'bar',
+        marker: {
+            color: 'rgb(0, 0, 0)',
+        }
     };
 
     var trace2 = {
         x: exponentialTrace.x_data,
         y: exponentialTrace.y_data,
-        name: 'logistic',
-        type: 'scatter'
+        name: 'exponential',
+        type: 'scatter',
+        line: {
+            color: 'rgb(219, 64, 82)',
+            width: 5
+        }
     };
         
     if (logisticTrace.x_data != null) {
         var trace3 = {
             x: logisticTrace.x_data,
             y: logisticTrace.y_data,
-            name: 'exponential',
-            type: 'scatter'
+            name: 'logistic',
+            type: 'scatter',
+            line: {
+                color: 'rgb(55, 128, 191)',
+                width: 8
+            }
         };
 
         var data = [trace1, trace2, trace3];
@@ -187,7 +203,8 @@ async function plotData(country, numDays) {
             x: 0.05,
         },
         width: 1500,
-        height: 900
+        height: 900,
+        bargap: 20.0
     };
 
     Plotly.newPlot('mainPlot', data, layout);
@@ -243,17 +260,18 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
 }
 
 function getConfirmedCasesTrace(x_data_label, country, numDays){
-    // leave only days from 0 - numDays
 
+    // leave only days from 0 - numDays
     var x_data = x_data_label
     if (numDays) {
         x_data = x_data_label.slice(0, numDays);
     }
 
-    var y_data = $.map(dictionary[country], function (value, key) { return value });
-    if (numDays) {
-        y_data = y_data.slice(0, numDays);
-    }
+    var y_data = [];
+    x_data.forEach(function (item, index) {
+        y_data.push(dictionary[country][item]);
+    });
+
     return{
         x_data,
         y_data
@@ -370,6 +388,12 @@ function determinationCoefficient(x_data, y_data, results) {
     }, 0);
 
     return 1 - (sse / ssyy);
+}
+
+function dateToDateObj(dateString){
+    var arr = dateString.split('/');
+    var isoString = "20" + arr[2] + "-" + arr[0] + "-" + arr[1] + "";
+    return new Date(isoString);
 }
 
 function setPreviousDay() {
