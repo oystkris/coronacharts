@@ -4,6 +4,7 @@ var dictionary = {};
 var four_parameter_json;
 var countries = [];
 var currentCountry = "Norway";
+var predictionPlotOn = false;
 
 var initNumdays, currentNumDays;
 
@@ -92,8 +93,11 @@ async function refreshAllData(country, numDays){
 
 async function drawEquations(parameters){
 
+    var p_date_string = `${parameters.finalDateObj.getDate()} ${parameters.finalDateObj.toLocaleString('default', { month: 'long' })} ${parameters.finalDateObj.getFullYear()}</b>`;
+
     document.getElementById("country_p").innerHTML = `${parameters.country}`;
-    document.getElementById("date_p").innerHTML = `${parameters.finalDateObj.getDate()} ${parameters.finalDateObj.toLocaleString('default', { month: 'long' })} ${parameters.finalDateObj.getFullYear()}</b>`;
+    document.getElementById("date_p").innerHTML = p_date_string;
+    document.getElementById("date_select_p").innerHTML = p_date_string;
 
     const eq_size = "\\Large";
 
@@ -163,6 +167,7 @@ async function plotData(country, numDays) {
     var exponentialTrace = getExponentialTrace(confirmedCasesTrace.x_data, confirmedCasesTrace.y_data);
     var logisticTrace = getLogisticTrace(confirmedCasesTrace.x_data, confirmedCasesTrace.y_data, country, final_date);
 
+    var data_traces = [];
 
     var trace1 = {
         x: confirmedCasesTrace.x_data,
@@ -184,6 +189,8 @@ async function plotData(country, numDays) {
             width: 5
         }
     };
+
+    data_traces = [trace1, trace2];
         
     if (logisticTrace.x_data != null) {
         var trace3 = {
@@ -196,23 +203,27 @@ async function plotData(country, numDays) {
                 width: 8
             }
         };
+        data_traces.push(trace3);
+        if (predictionPlotOn == true)
+        {
+            var trace4 = {
+                x: logisticTrace.x_data_predict,
+                y: logisticTrace.y_data_predict,
+                name: 'logistic prediction',
+                type: 'scatter',
+                line: {
+                    color: 'darkgrey',
+                    width: 5,
+                    dash:'dash'
+                }
+            };
+            data_traces.push(trace4);
+        }
+    }
 
-        var trace4 = {
-            x: logisticTrace.x_data_predict,
-            y: logisticTrace.y_data_predict,
-            name: 'logistic prediction',
-            type: 'scatter',
-            line: {
-                color: 'darkgrey',
-                width: 5,
-                dash:'dash'
-            }
-        };
-        var data = [trace1, trace2, trace3, trace4];
-    }
-    else {
-        var data = [trace1, trace2];
-    }
+    
+
+
 
     // var plot_title = `Cases of Covid-19 in ${country} `;
     var plot_title = `<b>Cases of Covid-19 in ${country}</b>`;
@@ -245,7 +256,7 @@ async function plotData(country, numDays) {
         bargap: 20.0
     };
 
-    Plotly.newPlot('mainPlot', data, layout);
+    Plotly.newPlot('mainPlot', data_traces, layout);
 
     return{
         confirmedCasesTrace,
@@ -494,39 +505,49 @@ function dateObjDateStr(dateObj){
     return month + "/" + day + "/" + year;
 }
 
+function togglePredictionPlot(){
+    if(predictionPlotOn == false){
+        predictionPlotOn = true;
+    }
+    else{
+        predictionPlotOn = false;
+    }
+    refreshAllData(currentCountry, currentNumDays);
+}
+
 function setPreviousDay() {
     if (currentNumDays > 0) {
         currentNumDays--;
-        refreshAllData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays);
     }
 }
 
 function setNextDay() {
     if (currentNumDays < initNumdays) {
         currentNumDays++;
-        refreshAllData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays);
     }
 }
 
 function setPreviousWeek(){
     if (currentNumDays - 7 > 0) {
         currentNumDays = currentNumDays - 7;
-        refreshAllData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays);
     }
     else{
         currentNumDays = 1;
-        refreshAllData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays);
     }
 }
 
 function setNextWeek() {
     if (currentNumDays + 7 < initNumdays) {
         currentNumDays = currentNumDays + 7;
-        refreshAllData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays);
     }
     else{
         currentNumDays = initNumdays;
-        refreshAllData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays);
     }
 }
 

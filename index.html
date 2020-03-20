@@ -36,10 +36,14 @@
             <div style="text-align: center;">
                 <button onclick="setPreviousWeek()">Previous week</button>
                 <button onclick="setPreviousDay()">Previous day</button>
+                <p id="date_select_p" style="font-size:80%;font-family:'Courier New', Courier, monospace;display:inline"></p>
                 <button onclick="setNextDay()">Next day</button>
                 <button onclick="setNextWeek()">Next week</button>
-                <input id="countryInput" list="countries">
+                &emsp;&emsp;&emsp;
+                <!-- <span style="display:inline-block; width: 300;"></span> -->
+                <input id="countryInput" list="countries" value="Norway">
                 <datalist onchange="setCountry()" id="countries"></datalist>
+                <button onclick="togglePredictionPlot()">Turn prediction on/off</button>
                 <p style="font-size:80%;font-family:'Courier New', Courier, monospace">Created by Øystein Kristoffersen</p>
             </div>
         </div>
