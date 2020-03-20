@@ -1,5 +1,14 @@
 <!DOCTYPE html>
 <head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161429023-1"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-161429023-1');
+    </script>
+
     <!-- MathJax.Hub.Config({ tex2jax: { inlineMath: [["$","$"],["\\(","\\)"]] } }); -->
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <meta content="utf-8" http-equiv="encoding">
@@ -27,22 +36,32 @@
             <div style="text-align: center;">
                 <button onclick="setPreviousWeek()">Previous week</button>
                 <button onclick="setPreviousDay()">Previous day</button>
+                <p id="date_select_p" style="font-size:80%;font-family:'Courier New', Courier, monospace;display:inline"></p>
                 <button onclick="setNextDay()">Next day</button>
                 <button onclick="setNextWeek()">Next week</button>
-                <input id="countryInput" list="countries">
-                <datalist onchange="setCountry()" id="countries">
-                </datalist>
+                &emsp;&emsp;&emsp;
+                <!-- <span style="display:inline-block; width: 300;"></span> -->
+                <input id="countryInput" list="countries" value="Norway">
+                <datalist onchange="setCountry()" id="countries"></datalist>
+                <button onclick="togglePredictionPlot()">Turn prediction on/off</button>
+                <p style="font-size:80%;font-family:'Courier New', Courier, monospace">Created by Øystein Kristoffersen</p>
             </div>
         </div>
-        <div style="padding-top: 200px;">
-            <span style="font-size: 18pt" style="margin-top: 0.5em;"><b>Growth factor</b></span>
+        <div style="padding-top: 110px;">
+            <p id="country_p" style="font-size:220%;font-family:'Courier New', Courier, monospace"></p>
+            <p id="date_p" style="font-size:200%;font-family:'Courier New', Courier, monospace"></p>
+            <span style="font-size: 18pt;margin-top: 0.5em;font-family:'Courier New', Courier, monospace"><b>Growth factor</b></span>
             <div id="GrowthFactorEquation" style="margin-top: 0.5em;"></div>
-            <span style="font-size: 18pt;margin-top: 2.5em;"><b>Logistic model</b></span>
+            <span style="font-size: 18pt;margin-top: 2.5em;font-family:'Courier New', Courier, monospace"><b><br>Logistic model</b></span>
+            <!-- <p style="font-size:140%;">inflection point:</p> -->
+            <p id="inflectionDate" style="font-size:120%;font-family:'Courier New', Courier, monospace"></p>
+            <!-- <p style="font-size:140%;">max point:</p> -->
+            <p id="percent98Date" style="font-size:120%;font-family:'Courier New', Courier, monospace"></p>
             <div id="LogisticTotalConfirmed" style="margin-top: 0.5;"></div>
             <div id="LogisticR2" style="margin-top: 0.5em;"></div>
             <div id="LogisticEquation" style="margin-top: 0.5em;"></div>
-            <span style="font-size: 18pt" style="margin-top: 1.5;"><b>Exponential model</b></span>
-            <div id="ExponentialR2" style="margin-top: 0.5em;"></div>
+            <span style="font-size: 18pt;margin-top: 2.5em;font-family:'Courier New', Courier, monospace"><b><br>Exponential model</b></span>
+            <div id="ExponentialR2" style="margin-top: 1em;"></div>
             <div type="math/tex; mode=display" id="ExponentialEquation" style="margin-top: 0.5em;margin-bottom: 0.5em;"></div>
         </div>
     </div>

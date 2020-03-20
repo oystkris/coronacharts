@@ -4,6 +4,7 @@ var dictionary = {};
 var four_parameter_json;
 var countries = [];
 var currentCountry = "Norway";
+var predictionPlotOn = false;
 
 var initNumdays, currentNumDays;
 
@@ -92,11 +93,19 @@ async function refreshAllData(country, numDays){
 
 async function drawEquations(parameters){
 
+    var p_date_string = `${parameters.finalDateObj.getDate()} ${parameters.finalDateObj.toLocaleString('default', { month: 'long' })} ${parameters.finalDateObj.getFullYear()}</b>`;
+
+    document.getElementById("country_p").innerHTML = `${parameters.country}`;
+    document.getElementById("date_p").innerHTML = p_date_string;
+    document.getElementById("date_select_p").innerHTML = p_date_string;
+
+    const eq_size = "\\Large";
+
     var y_n = parameters.confirmedCasesTrace.y_data.slice(-1)[0];
     var y_n_1 = parameters.confirmedCasesTrace.y_data.slice(-2)[0];
     var growthFactor = y_n / y_n_1;
 
-    growth_factor_r2 = '\\LARGE \\frac{Δ N_d}{Δ N_{d-1}} = ' + growthFactor.toFixed(2).toString();
+    var growth_factor_r2 = eq_size + '{\\frac{Δ N_d}{Δ N_{d-1}} = ' + growthFactor.toFixed(2).toString() + '}';
 
     var gf_eq = document.getElementById('GrowthFactorEquation');
     katex.render(growth_factor_r2, gf_eq, {
@@ -104,8 +113,8 @@ async function drawEquations(parameters){
     });
 
 
-    exponential_r2 = '\\LARGE r^2 = ' + parameters.exponentialTrace.r2.toFixed(4).toString();
-    exponential_eq = '\\LARGE y = ' + parameters.exponentialTrace.a.toFixed(2).toString() + 'e^{' + parameters.exponentialTrace.b.toFixed(2).toString() + 'x}';
+    exponential_r2 = eq_size + '{r^2 = ' + parameters.exponentialTrace.r2.toFixed(4).toString() + '}';
+    exponential_eq = eq_size + '{y = ' + parameters.exponentialTrace.a.toFixed(2).toString() + '\\;e^{\\:' + parameters.exponentialTrace.b.toFixed(2).toString() + 'x}}';
 
     var exp_r2_eq = document.getElementById('ExponentialR2');
     katex.render(exponential_r2, exp_r2_eq, {
@@ -117,8 +126,12 @@ async function drawEquations(parameters){
         throwOnError: false
     });
 
-    var logistic_r2 = '\\LARGE r^2 = ' + parameters.logisticTrace.r2.toFixed(4).toString() + ''
-    var logistic_eq = '\\LARGE y = ' + parameters.logisticTrace.d.toFixed(2).toString() + ' + \\frac{' + parameters.logisticTrace.a.toFixed(2).toString() + ' - ' + parameters.logisticTrace.d.toFixed(2).toString() + '}{1 + (\\frac{x}{' + parameters.logisticTrace.c.toFixed(2).toString() + '})^{' + parameters.logisticTrace.b.toFixed(2).toString() + '}}';
+    document.getElementById("inflectionDate").innerHTML = `<i>inflection point</i><br><b>${parameters.logisticTrace.dateCpoint.getDate()} ${parameters.logisticTrace.dateCpoint.toLocaleString('default', { month: 'long' })} ${parameters.logisticTrace.dateCpoint.getFullYear()}</b>`;
+    document.getElementById("percent98Date").innerHTML = `<i>reaching 98% cases at</i><br><b>${parameters.logisticTrace.date98percent.getDate()} ${parameters.logisticTrace.date98percent.toLocaleString('default', { month: 'long' })} ${parameters.logisticTrace.date98percent.getFullYear()}</b>`;
+
+    var logistic_r2 = eq_size + '{r^2 = ' + parameters.logisticTrace.r2.toFixed(4).toString() + '}';
+    var logistic_eq = eq_size + '{y = ' + parameters.logisticTrace.d.toFixed(2).toString() + ' + \\frac{' + parameters.logisticTrace.a.toFixed(2).toString() + ' - ' + parameters.logisticTrace.d.toFixed(2).toString() + '}{1 + (\\frac{x}{' + parameters.logisticTrace.c.toFixed(2).toString() + '})^{' + parameters.logisticTrace.b.toFixed(2).toString() + '}}}';
+    console.log(logistic_eq);
 
     var log_r2_eq = document.getElementById('LogisticR2');
     katex.render(logistic_r2, log_r2_eq, {
@@ -147,14 +160,14 @@ async function plotData(country, numDays) {
     var final_date = confirmedCasesTrace.x_data.slice(-1)[0];
     var final_confirmed = confirmedCasesTrace.y_data.slice(-1)[0];
     var date = dateToDateObj(final_date);
-    // const day = date.toLocaleString('default', { day: 'long' });
+
     var day = date.getDate();
     var month = date.toLocaleString('default', { month: 'long' });
 
     var exponentialTrace = getExponentialTrace(confirmedCasesTrace.x_data, confirmedCasesTrace.y_data);
     var logisticTrace = getLogisticTrace(confirmedCasesTrace.x_data, confirmedCasesTrace.y_data, country, final_date);
 
-
+    var data_traces = [];
 
     var trace1 = {
         x: confirmedCasesTrace.x_data,
@@ -176,6 +189,8 @@ async function plotData(country, numDays) {
             width: 5
         }
     };
+
+    data_traces = [trace1, trace2];
         
     if (logisticTrace.x_data != null) {
         var trace3 = {
@@ -188,12 +203,27 @@ async function plotData(country, numDays) {
                 width: 8
             }
         };
+        data_traces.push(trace3);
+        if (predictionPlotOn == true)
+        {
+            var trace4 = {
+                x: logisticTrace.x_data_predict,
+                y: logisticTrace.y_data_predict,
+                name: 'logistic prediction',
+                type: 'scatter',
+                line: {
+                    color: 'darkgrey',
+                    width: 5,
+                    dash:'dash'
+                }
+            };
+            data_traces.push(trace4);
+        }
+    }
 
-        var data = [trace1, trace2, trace3];
-    }
-    else {
-        var data = [trace1, trace2];
-    }
+    
+
+
 
     // var plot_title = `Cases of Covid-19 in ${country} `;
     var plot_title = `<b>Cases of Covid-19 in ${country}</b>`;
@@ -203,9 +233,6 @@ async function plotData(country, numDays) {
     plot_title = plot_title + `<br><sup><i>Confirmed cases as of ${day} ${month} ${date.getFullYear()}: <b>${final_confirmed}</b></i></sup>`;
     plot_title = plot_title + '<br><sup><i>See model parameters in sidebar</i></sup>';
     
-
-
-
     var layout = {
         title: {
             text: plot_title,
@@ -220,21 +247,23 @@ async function plotData(country, numDays) {
         },
         showlegend: true,
         legend: {
-            x: 1,
+            x: 0.18,
             xanchor: 'right',
-            y: 1
+            y: 0.9
         },
-        width: 1500,
-        height: 900,
+        width: 1475,
+        height: 855,
         bargap: 20.0
     };
 
-    Plotly.newPlot('mainPlot', data, layout);
+    Plotly.newPlot('mainPlot', data_traces, layout);
 
     return{
         confirmedCasesTrace,
         exponentialTrace,
-        logisticTrace
+        logisticTrace,
+        country,
+        finalDateObj: date
     };
 }
 
@@ -248,35 +277,86 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
         var logistic_y_data = [];
     
         x_data.forEach(function (item, index) {
-            x_data_index.push(index)
+            x_data_index.push(index);
         });
 
+        var data_index;
+        var logistic_y;
         x_data_index.forEach(function (x, index) {
-            var logistic_y = logistic(x, lginf.A, lginf.B, lginf.C, lginf.D)
+            logistic_y = logistic(x, lginf.A, lginf.B, lginf.C, lginf.D);
             logistic_y_data.push(logistic_y);
-            log_point_list.push([x, logistic_y])
+            log_point_list.push([x, logistic_y]);
+            data_index = index;
         });
 
         var r2 = determinationCoefficient(x_data, confirmed_y_data, log_point_list);
+
+        var finalDateObj = dateToDateObj(finalDate);
+        var finalConfirmed = confirmed_y_data.slice(-1)[0];
+        var predictionLimit = Math.ceil(lginf.D * 0.98);
+
+        x_data_predict_index = x_data_index;
+        x_data_predict = x_data;
+        y_data_predict = [];
+
+        var dateCpoint = null;
+
+        x_data.forEach(function (item, index) {
+            y_data_predict.push(null);
+            if (dateCpoint == null){
+                if (index > lginf.C){
+                    dateCpoint = dateToDateObj(item);
+                    dateCpoint = new Date(dateCpoint.setDate(dateCpoint.getDate() - 1));
+                }
+            }
+        });
+
+        y_data_predict.splice(-1,1);
+        y_data_predict.push(logistic(data_index, lginf.A, lginf.B, lginf.C, lginf.D));
+
+        logistic_y = 0;
+        var nextDate = finalDateObj;
+        var label = "";
+
+        while (logistic_y < predictionLimit) {
+            data_index = data_index + 1;
+            if (dateCpoint == null){
+                if (data_index > lginf.C){
+                    dateCpoint = dateToDateObj(finalDate);
+                    dateCpoint = new Date(dateCpoint.setDate(dateCpoint.getDate() - 1));
+                }
+            }
+            
+            nextDate.setDate(nextDate.getDate() + 1);
+            label = dateObjDateStr(nextDate);
+
+            logistic_y = logistic(data_index, lginf.A, lginf.B, lginf.C, lginf.D);
+            x_data_predict_index.push(data_index);
+            x_data_predict.push(label);
+            y_data_predict.push(logistic_y);
+
+            if (data_index > 28835){
+                break;
+            }
+        }
+
         return{
             x_data,
             y_data: logistic_y_data,
+            x_data_predict,
+            y_data_predict,
             a: lginf.A,
             b: lginf.B, 
             c: lginf.C, 
             d: lginf.D,
-            r2
+            r2,
+            dateCpoint,
+            date98percent: nextDate
         }
     }
     else{
         return{
-            x_data: null,
-            y_data: null,
-            a: null,
-            b: null,
-            c: null,
-            d: null,
-            r2: null
+            x_data: null
         }
     }
 }
@@ -418,39 +498,56 @@ function dateToDateObj(dateString){
     return new Date(isoString);
 }
 
+function dateObjDateStr(dateObj){
+    var year = dateObj.getFullYear().toString().slice(-2);;
+    var month = dateObj.getMonth() + 1;
+    var day = dateObj.getDate();
+    return month + "/" + day + "/" + year;
+}
+
+function togglePredictionPlot(){
+    if(predictionPlotOn == false){
+        predictionPlotOn = true;
+    }
+    else{
+        predictionPlotOn = false;
+    }
+    refreshAllData(currentCountry, currentNumDays);
+}
+
 function setPreviousDay() {
     if (currentNumDays > 0) {
         currentNumDays--;
-        refreshAllData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays);
     }
 }
 
 function setNextDay() {
     if (currentNumDays < initNumdays) {
         currentNumDays++;
-        refreshAllData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays);
     }
 }
 
 function setPreviousWeek(){
     if (currentNumDays - 7 > 0) {
         currentNumDays = currentNumDays - 7;
-        refreshAllData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays);
     }
     else{
         currentNumDays = 1;
-        refreshAllData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays);
     }
 }
 
 function setNextWeek() {
     if (currentNumDays + 7 < initNumdays) {
         currentNumDays = currentNumDays + 7;
-        refreshAllData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays);
     }
     else{
         currentNumDays = initNumdays;
-        refreshAllData(currentCountry, currentNumDays)
+        refreshAllData(currentCountry, currentNumDays);
     }
 }
 
