@@ -48,10 +48,12 @@ def curve_fit_fourPL(x_data, y_data):
             params, params_covariance = scipy.optimize.curve_fit(fourPL, x_data, y_data, p0=guess, maxfev=10000)
             A, B, C, D = params[0], params[1], params[2], params[3]
             err = np.sqrt(np.diag(params_covariance))
-            A_err, B_err, C_err, D_err = err[0],err[1],err[2],err[3]
+            A_err, B_err, C_err, D_err = err[0], err[1], err[2], err[3]
         except:
             raise
 
+    if np.inf in [A_err, B_err, C_err, D_err] or np.isnan(A_err) or np.isnan(B_err) or np.isnan(C_err) or np.isnan(D_err):
+        A_err, B_err, C_err, D_err = 0, 0, 0, 0
     return A, B, C, D, A_err, B_err, C_err, D_err
 
 
@@ -107,12 +109,16 @@ def curve_fit_all_countries(data):
                 limit_x_data, limit_y_data = np.array(x_data[:date_index]), np.array(y_data[:date_index])
 
                 try:
-                    A, B, C, D = curve_fit_fourPL(limit_x_data, limit_y_data)
+                    A, B, C, D, A_err, B_err, C_err, D_err = curve_fit_fourPL(limit_x_data, limit_y_data)
                     four_pl_dict[country][date] = {
                         "A": A,
                         "B": B,
                         "C": C,
-                        "D": D
+                        "D": D,
+                        "A_err": A_err,
+                        "B_err": B_err,
+                        "C_err": C_err,
+                        "D_err": D_err
                     }
                 except RuntimeError as e:
                     print(f'RuntimeError: couldnt do curvefit for {country}')

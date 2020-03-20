@@ -193,7 +193,7 @@ async function plotData(country, numDays) {
     data_traces = [trace1, trace2];
         
     if (logisticTrace.x_data != null) {
-        var trace3 = {
+        var trace_logistic = {
             x: logisticTrace.x_data,
             y: logisticTrace.y_data,
             name: 'logistic',
@@ -203,7 +203,37 @@ async function plotData(country, numDays) {
                 width: 8
             }
         };
-        data_traces.push(trace3);
+        data_traces.push(trace_logistic);
+
+        var trace_logistic_lower = {
+            x: logisticTrace.x_data,
+            y: logisticTrace.y_data_lower,
+            name: 'logistic lower bound',
+            type: 'scatter',
+            line: {
+                color: 'rgb(55, 128, 191)',
+                width: 3
+            }
+        };
+        data_traces.push(trace_logistic);
+
+        var trace_logistic_upper = {
+            x: logisticTrace.x_data,
+            y: logisticTrace.y_data_upper,
+            name: 'logistic upper bound',
+            type: 'scatter',
+            line: {
+                color: 'rgb(55, 128, 191)',
+                width: 3
+            }
+        };
+        data_traces.push(trace_logistic);
+        data_traces.push(trace_logistic_lower);
+        data_traces.push(trace_logistic_upper);
+
+
+
+
         if (predictionPlotOn == true)
         {
             var trace4 = {
@@ -282,9 +312,15 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
 
         var data_index;
         var logistic_y;
+        var y_data_lower = [];
+        var y_data_upper = [];
         x_data_index.forEach(function (x, index) {
             logistic_y = logistic(x, lginf.A, lginf.B, lginf.C, lginf.D);
+            logistic_y_lower = logistic(x, lginf.A, lginf.B - lginf.B_err, lginf.C + lginf.C_err, lginf.D - lginf.D_err);
+            logistic_y_upper = logistic(x, lginf.A, lginf.B + lginf.B_err, lginf.C - lginf.C_err, lginf.D + lginf.D_err);
             logistic_y_data.push(logistic_y);
+            y_data_lower.push(logistic_y_lower);
+            y_data_upper.push(logistic_y_upper);
             log_point_list.push([x, logistic_y]);
             data_index = index;
         });
@@ -343,6 +379,8 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
         return{
             x_data,
             y_data: logistic_y_data,
+            y_data_lower,
+            y_data_upper,
             x_data_predict,
             y_data_predict,
             a: lginf.A,
