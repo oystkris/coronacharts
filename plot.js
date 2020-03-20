@@ -11,7 +11,7 @@ var initNumdays, currentNumDays;
 async function main() {
     $.getJSON("./4pl.json", function(json) {
         four_parameter_json = json;
-        console.log(json); // this will show the info it in firebug console
+        // console.log(json); // this will show the info it in firebug console
     });
 
     await getData();
@@ -39,8 +39,8 @@ function processData(allText) {
     var headers = allTextLines[0].split(',');
     var dates = headers.slice(Math.max(headers.length - (headers.length - 4), 1))
 
-    console.log(headers);
-    console.log(dates);
+    // console.log(headers);
+    // console.log(dates);
 
     for (var i = 1; i < allTextLines.length; i++) {
 
@@ -131,7 +131,7 @@ async function drawEquations(parameters){
 
     var logistic_r2 = eq_size + '{r^2 = ' + parameters.logisticTrace.r2.toFixed(4).toString() + '}';
     var logistic_eq = eq_size + '{y = ' + parameters.logisticTrace.d.toFixed(2).toString() + ' + \\frac{' + parameters.logisticTrace.a.toFixed(2).toString() + ' - ' + parameters.logisticTrace.d.toFixed(2).toString() + '}{1 + (\\frac{x}{' + parameters.logisticTrace.c.toFixed(2).toString() + '})^{' + parameters.logisticTrace.b.toFixed(2).toString() + '}}}';
-    console.log(logistic_eq);
+    // console.log(logistic_eq);
 
     var log_r2_eq = document.getElementById('LogisticR2');
     katex.render(logistic_r2, log_r2_eq, {
@@ -150,6 +150,7 @@ async function plotData(country, numDays) {
     x_data_label.sort(function(a,b){
         return dateToDateObj(b) - dateToDateObj(a);
     }).reverse();
+    console.log(x_data_label);
 
     initNumdays = x_data_label.length;
     if (!numDays) {
@@ -160,6 +161,7 @@ async function plotData(country, numDays) {
     var final_date = confirmedCasesTrace.x_data.slice(-1)[0];
     var final_confirmed = confirmedCasesTrace.y_data.slice(-1)[0];
     var date = dateToDateObj(final_date);
+    console.log(final_date);
 
     var day = date.getDate();
     var month = date.toLocaleString('default', { month: 'long' });
