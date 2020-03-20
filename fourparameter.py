@@ -3,10 +3,11 @@ import os
 import json
 import pandas
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import scipy.optimize
 import requests
 import datetime
+from uncertainties import ufloat
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -28,12 +29,15 @@ def curve_fit_fourPL(x_data, y_data):
         print("FORSKJELL I LENGDE PÅ INPUT-DATA")
 
     A, B, C, D = 1, 1, 1, 1
+    A_err, B_err, C_err, D_err = 0, 0, 0, 0
 
     if len(x_data) < 4: return A, B, C, D
 
     try:
         params, params_covariance = scipy.optimize.curve_fit(fourPL, x_data, y_data, maxfev=10000)
         A, B, C, D = params[0], params[1], params[2], params[3]
+        err = np.sqrt(np.diag(params_covariance))
+        A_err, B_err, C_err, D_err = err[0],err[1],err[2],err[3]
     except:
         try:
             A_guess = 0
@@ -43,10 +47,12 @@ def curve_fit_fourPL(x_data, y_data):
             guess = [A_guess, B_guess, C_guess, D_guess]
             params, params_covariance = scipy.optimize.curve_fit(fourPL, x_data, y_data, p0=guess, maxfev=10000)
             A, B, C, D = params[0], params[1], params[2], params[3]
+            err = np.sqrt(np.diag(params_covariance))
+            A_err, B_err, C_err, D_err = err[0],err[1],err[2],err[3]
         except:
             raise
 
-    return A, B, C, D
+    return A, B, C, D, A_err, B_err, C_err, D_err
 
 
 def get_csv_data():
