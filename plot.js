@@ -148,8 +148,8 @@ async function plotData(country, numDays) {
 
     var x_data_label = $.map(dictionary[country], function (value, key) { return key });
     x_data_label.sort(function(a,b){
-        return dateToDateObj(b) - dateToDateObj(a);
-    }).reverse();
+        return dateToDateObj(a) - dateToDateObj(b);
+    });
     console.log(x_data_label);
 
     initNumdays = x_data_label.length;
