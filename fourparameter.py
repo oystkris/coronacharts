@@ -7,7 +7,7 @@ import numpy as np
 import scipy.optimize
 import requests
 import datetime
-from uncertainties import ufloat
+# from uncertainties import ufloat
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -52,7 +52,7 @@ def curve_fit_fourPL(x_data, y_data):
         except:
             raise
 
-    return A, B, C, D, A_err, B_err, C_err, D_err
+    return A, B, C, D
 
 
 def get_csv_data():
