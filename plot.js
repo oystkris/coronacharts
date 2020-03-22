@@ -207,18 +207,7 @@ async function plotData(country, numDays) {
         }
     };
 
-    var trace2 = {
-        x: exponentialTrace.x_data,
-        y: exponentialTrace.y_data,
-        name: 'exponential',
-        type: 'scatter',
-        line: {
-            color: 'rgb(219, 64, 82)',
-            width: 5
-        }
-    };
-
-    data_traces = [trace1, trace2];
+    data_traces = [trace1];
 
     if (extraDataPlotOn == true){
         var y_data_finished = recoveredTrace.y_data.map(function(v,i) { return (v + deathTrace.y_data[i]); });
@@ -260,6 +249,18 @@ async function plotData(country, numDays) {
         data_traces.push(trace_death);
         data_traces.push(trace_active);
     }
+
+    var trace_exp = {
+        x: exponentialTrace.x_data,
+        y: exponentialTrace.y_data,
+        name: 'exponential',
+        type: 'scatter',
+        line: {
+            color: 'rgb(219, 64, 82)',
+            width: 5
+        }
+    };
+    data_traces.push(trace_exp);
         
     if (logisticTrace.x_data != null) {
         var trace3 = {
@@ -289,10 +290,6 @@ async function plotData(country, numDays) {
             data_traces.push(trace4);
         }
     }
-
-    
-
-
 
     // var plot_title = `Cases of Covid-19 in ${country} `;
     var plot_title = `<b>Cases of Covid-19 in ${country}</b>`;
