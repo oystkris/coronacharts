@@ -35,16 +35,17 @@
         <div id='mainPlot'>
             <!-- Plotly chart will be drawn inside this DIV -->
             <div style="text-align: center;">
-                <button onclick="setPreviousWeek()">Previous week</button>
-                <button onclick="setPreviousDay()">Previous day</button>
+                <button onclick="setPreviousWeek()" style="font-family:'Courier New', Courier, monospace">Previous week</button>
+                <button onclick="setPreviousDay()" style="font-family:'Courier New', Courier, monospace">Previous day</button>
                 <p id="date_select_p" style="font-size:80%;font-family:'Courier New', Courier, monospace;display:inline"></p>
-                <button onclick="setNextDay()">Next day</button>
-                <button onclick="setNextWeek()">Next week</button>
+                <button onclick="setNextDay()" style="font-family:'Courier New', Courier, monospace">Next day</button>
+                <button onclick="setNextWeek()" style="font-family:'Courier New', Courier, monospace">Next week</button>
                 &emsp;&emsp;&emsp;
                 <!-- <span style="display:inline-block; width: 300;"></span> -->
                 <input id="countryInput" list="countries" value="Norway">
-                <datalist onchange="setCountry()" id="countries"></datalist>
-                <button onclick="togglePredictionPlot()">Turn prediction on/off</button>
+                <datalist id="countries"></datalist>
+                <button onclick="togglePredictionPlot()" style="font-family:'Courier New', Courier, monospace">Turn prediction on/off</button>
+                <button id="extraDataPlot" onclick="toggleExtraDataPlot()" style="font-family:'Courier New', Courier, monospace">Plot more data</button>
                 <p style="font-size:80%;font-family:'Courier New', Courier, monospace">Created by Øystein Kristoffersen</p>
             </div>
         </div>

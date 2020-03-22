@@ -1,43 +1,62 @@
 
 
-var dictionary = {};
+var confirmed_dict = {};
+var recovered_dict = {};
+var death_dict = {};
 var four_parameter_json;
 var countries = [];
 var currentCountry = "Norway";
 var predictionPlotOn = false;
+var extraDataPlotOn = false;
 
 var initNumdays, currentNumDays;
 
 async function main() {
     $.getJSON("./4pl.json", function(json) {
         four_parameter_json = json;
-        // console.log(json); // this will show the info it in firebug console
     });
 
     await getData();
+    // updateCountryCombobox();
     await new Promise(r => setTimeout(r, 2000));
 
     refreshAllData(currentCountry, null);
 }
 
 async function getData() {
+    data2dict(
+        "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv",
+        confirmed_dict
+    );
+    data2dict(
+        "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv",
+        recovered_dict
+    );
+    data2dict(
+        "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv",
+        death_dict
+    );
+}
+
+function data2dict(url, dictionary){
     $(document).ready(function () {
         $.ajax({
             type: "GET",
-            url: "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv",
+            url: url,
             dataType: "text",
             success: function (data) {
-                processData(data);
+                processData(data, dictionary);
             }
         });
     });
 }
 
-function processData(allText) {
+function processData(allText, dictionary) {
     var allText = allText.replace("\"Korea, South\"", "South Korea");
     var allTextLines = allText.split(/\r\n|\n/);
     var headers = allTextLines[0].split(',');
-    var dates = headers.slice(Math.max(headers.length - (headers.length - 4), 1))
+    var dates = headers.slice(Math.max(headers.length - (headers.length - 4), 1));
+    var local_countries = [];
 
     // console.log(headers);
     // console.log(dates);
@@ -50,7 +69,7 @@ function processData(allText) {
             var country = data[1];
             if (!(country in dictionary)) {
                 dictionary[country] = {};
-                countries.push(country);
+                local_countries.push(country);
             }
 
             if (country == "Norway"){
@@ -74,15 +93,20 @@ function processData(allText) {
 
         }
     }
-    // Set values in country drowdown
+    local_countries.sort();
+    local_countries.forEach(function (item, index) {
+        if (!countries.includes(item)){
+            countries.push(item);
+        }
+    });
+    updateCountryCombobox();
+}
+
+function updateCountryCombobox(){
     var options = '';
-
-    countries.sort();
-
     for(var i = 0; i < countries.length; i++) {
         options += '<option value="' + countries[i] + '" />';
     }
-  
     document.getElementById('countries').innerHTML = options;
 }
 
@@ -146,7 +170,7 @@ async function drawEquations(parameters){
 
 async function plotData(country, numDays) {
 
-    var x_data_label = $.map(dictionary[country], function (value, key) { return key });
+    var x_data_label = $.map(confirmed_dict[country], function (value, key) { return key });
     x_data_label.sort(function(a,b){
         return dateToDateObj(a) - dateToDateObj(b);
     });
@@ -157,7 +181,9 @@ async function plotData(country, numDays) {
         currentNumDays = initNumdays;
     }
 
-    var confirmedCasesTrace = getConfirmedCasesTrace(x_data_label, country, numDays);
+    var confirmedCasesTrace = getConfirmedCasesTrace(x_data_label, country, numDays, confirmed_dict);
+    var recoveredTrace = getConfirmedCasesTrace(x_data_label, country, numDays, recovered_dict);
+    var deathTrace = getConfirmedCasesTrace(x_data_label, country, numDays, death_dict);
     var final_date = confirmedCasesTrace.x_data.slice(-1)[0];
     var final_confirmed = confirmedCasesTrace.y_data.slice(-1)[0];
     var date = dateToDateObj(final_date);
@@ -193,6 +219,47 @@ async function plotData(country, numDays) {
     };
 
     data_traces = [trace1, trace2];
+
+    if (extraDataPlotOn == true){
+        var y_data_finished = recoveredTrace.y_data.map(function(v,i) { return (v + deathTrace.y_data[i]); });
+        var y_data_active = confirmedCasesTrace.y_data.map(function(v,i) { return (v - y_data_finished[i]); });
+        var trace_recovered = {
+            x: recoveredTrace.x_data,
+            y: recoveredTrace.y_data,
+            name: 'recovered',
+            type: 'scatter',
+            line: {
+                color: 'rgb(44, 160, 44)',
+                width: 3
+            }
+        };
+    
+        var trace_death = {
+            x: deathTrace.x_data,
+            y: deathTrace.y_data,
+            name: 'died',
+            type: 'scatter',
+            line: {
+                color: 'rgb(127, 127, 127)',
+                width: 3
+            }
+        };
+
+        var trace_active = {
+            x: confirmedCasesTrace.x_data,
+            y: y_data_active,
+            name: 'active cases',
+            type: 'scatter',
+            line: {
+                color: 'rgb(221, 175, 39)',
+                width: 3
+            }
+        };
+
+        data_traces.push(trace_recovered);
+        data_traces.push(trace_death);
+        data_traces.push(trace_active);
+    }
         
     if (logisticTrace.x_data != null) {
         var trace3 = {
@@ -363,7 +430,7 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
     }
 }
 
-function getConfirmedCasesTrace(x_data_label, country, numDays){
+function getConfirmedCasesTrace(x_data_label, country, numDays, dictionary){
 
     // leave only days from 0 - numDays
     var x_data = x_data_label
@@ -373,7 +440,12 @@ function getConfirmedCasesTrace(x_data_label, country, numDays){
 
     var y_data = [];
     x_data.forEach(function (item, index) {
-        y_data.push(dictionary[country][item]);
+        if (item in dictionary[country]) {
+            y_data.push(dictionary[country][item]);
+        }
+        else{
+            y_data.push(null);
+        }
     });
 
     return{
@@ -513,6 +585,18 @@ function togglePredictionPlot(){
     }
     else{
         predictionPlotOn = false;
+    }
+    refreshAllData(currentCountry, currentNumDays);
+}
+
+function toggleExtraDataPlot(){
+    if(extraDataPlotOn == false){
+        extraDataPlotOn = true;
+        document.getElementById('extraDataPlot').innerHTML = "Plot less data";
+    }
+    else{
+        extraDataPlotOn = false;
+        document.getElementById('extraDataPlot').innerHTML = "Plot more data";
     }
     refreshAllData(currentCountry, currentNumDays);
 }
