@@ -29,7 +29,7 @@ async function getData() {
         confirmed_dict
     );
     data2dict(
-        "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv",
+        "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv",
         recovered_dict
     );
     data2dict(
@@ -404,6 +404,10 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
             if (data_index > 28835){
                 break;
             }
+        }
+
+        if (dateCpoint == null){
+            dateCpoint = finalDateObj;
         }
 
         return{
