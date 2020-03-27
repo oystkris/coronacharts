@@ -207,7 +207,21 @@ async function plotData(country, numDays) {
         }
     };
 
-    data_traces = [trace1];
+    var trace_gf = {
+        x: confirmedCasesTrace.x_data,
+        y: confirmedCasesTrace.y_data_growth,
+        name: 'Growth Factor',
+        type: 'scatter',
+        line: {
+            color: 'rgb(148, 103, 189)',
+            width: 8,
+            shape: 'spline',
+            dash: 'dot'
+        },
+        yaxis: 'y2'
+    };
+
+    data_traces = [trace1, trace_gf];
 
     if (extraDataPlotOn == true){
         var y_data_finished = recoveredTrace.y_data.map(function(v,i) { return (v + deathTrace.y_data[i]); });
@@ -291,7 +305,6 @@ async function plotData(country, numDays) {
         }
     }
 
-    // var plot_title = `Cases of Covid-19 in ${country} `;
     var plot_title = `<b>Cases of Covid-19 in ${country}</b>`;
     if (logisticTrace.x_data != null) {
         plot_title = plot_title + `<br>Prediction logistic model: maximum <b>${logisticTrace.d.toFixed(0)}</b> confirmed cases`;
@@ -310,6 +323,17 @@ async function plotData(country, numDays) {
             yanchor: 'top',
             xref: 'paper',
             x: 0.05,
+        },
+        yaxis: {
+            title: '<b>Confirmed Cases</b>',
+            side: 'right'
+        },
+        yaxis2: {
+          title: '<b>Growth Factor</b>',
+          overlaying: 'y',
+          range: [0, 3],
+          showgrid: false,
+          side: 'left'
         },
         showlegend: true,
         legend: {
@@ -433,16 +457,37 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
 
 function getConfirmedCasesTrace(x_data_label, country, numDays, dictionary){
 
+    var y_data_growth = [];
+
+
     // leave only days from 0 - numDays
     var x_data = x_data_label
     if (numDays) {
         x_data = x_data_label.slice(0, numDays);
     }
 
+    var cur_y;
+    var prev_y = null;
+    var growth_factor;
+
     var y_data = [];
     x_data.forEach(function (item, index) {
         if (item in dictionary[country]) {
-            y_data.push(dictionary[country][item]);
+            cur_y = dictionary[country][item];
+            y_data.push(cur_y);
+            if (prev_y == null){
+                y_data_growth.push(null);
+            }
+            else{
+                growth_factor = cur_y / prev_y;
+                if (cur_y > 52){
+                    y_data_growth.push(growth_factor);
+                }
+                else{
+                    y_data_growth.push(null);
+                }
+            }
+            prev_y = cur_y;
         }
         else{
             y_data.push(null);
@@ -451,7 +496,8 @@ function getConfirmedCasesTrace(x_data_label, country, numDays, dictionary){
 
     return{
         x_data,
-        y_data
+        y_data,
+        y_data_growth
     }
 }
 
