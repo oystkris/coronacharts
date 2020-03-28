@@ -1,46 +1,65 @@
 
 
-var dictionary = {};
+var confirmed_dict = {};
+var recovered_dict = {};
+var death_dict = {};
 var four_parameter_json;
 var countries = [];
 var currentCountry = "Norway";
 var predictionPlotOn = false;
+var extraDataPlotOn = false;
 
 var initNumdays, currentNumDays;
 
 async function main() {
     $.getJSON("./4pl.json", function(json) {
         four_parameter_json = json;
-        console.log(json); // this will show the info it in firebug console
     });
 
     await getData();
+    // updateCountryCombobox();
     await new Promise(r => setTimeout(r, 2000));
 
     refreshAllData(currentCountry, null);
 }
 
 async function getData() {
+    data2dict(
+        "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv",
+        confirmed_dict
+    );
+    data2dict(
+        "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv",
+        recovered_dict
+    );
+    data2dict(
+        "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv",
+        death_dict
+    );
+}
+
+function data2dict(url, dictionary){
     $(document).ready(function () {
         $.ajax({
             type: "GET",
-            url: "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv",
+            url: url,
             dataType: "text",
             success: function (data) {
-                processData(data);
+                processData(data, dictionary);
             }
         });
     });
 }
 
-function processData(allText) {
+function processData(allText, dictionary) {
     var allText = allText.replace("\"Korea, South\"", "South Korea");
     var allTextLines = allText.split(/\r\n|\n/);
     var headers = allTextLines[0].split(',');
-    var dates = headers.slice(Math.max(headers.length - (headers.length - 4), 1))
+    var dates = headers.slice(Math.max(headers.length - (headers.length - 4), 1));
+    var local_countries = [];
 
-    console.log(headers);
-    console.log(dates);
+    // console.log(headers);
+    // console.log(dates);
 
     for (var i = 1; i < allTextLines.length; i++) {
 
@@ -50,7 +69,7 @@ function processData(allText) {
             var country = data[1];
             if (!(country in dictionary)) {
                 dictionary[country] = {};
-                countries.push(country);
+                local_countries.push(country);
             }
 
             if (country == "Norway"){
@@ -74,15 +93,20 @@ function processData(allText) {
 
         }
     }
-    // Set values in country drowdown
+    local_countries.sort();
+    local_countries.forEach(function (item, index) {
+        if (!countries.includes(item)){
+            countries.push(item);
+        }
+    });
+    updateCountryCombobox();
+}
+
+function updateCountryCombobox(){
     var options = '';
-
-    countries.sort();
-
     for(var i = 0; i < countries.length; i++) {
         options += '<option value="' + countries[i] + '" />';
     }
-  
     document.getElementById('countries').innerHTML = options;
 }
 
@@ -131,7 +155,7 @@ async function drawEquations(parameters){
 
     var logistic_r2 = eq_size + '{r^2 = ' + parameters.logisticTrace.r2.toFixed(4).toString() + '}';
     var logistic_eq = eq_size + '{y = ' + parameters.logisticTrace.d.toFixed(2).toString() + ' + \\frac{' + parameters.logisticTrace.a.toFixed(2).toString() + ' - ' + parameters.logisticTrace.d.toFixed(2).toString() + '}{1 + (\\frac{x}{' + parameters.logisticTrace.c.toFixed(2).toString() + '})^{' + parameters.logisticTrace.b.toFixed(2).toString() + '}}}';
-    console.log(logistic_eq);
+    // console.log(logistic_eq);
 
     var log_r2_eq = document.getElementById('LogisticR2');
     katex.render(logistic_r2, log_r2_eq, {
@@ -146,20 +170,24 @@ async function drawEquations(parameters){
 
 async function plotData(country, numDays) {
 
-    var x_data_label = $.map(dictionary[country], function (value, key) { return key });
+    var x_data_label = $.map(confirmed_dict[country], function (value, key) { return key });
     x_data_label.sort(function(a,b){
-        return dateToDateObj(b) - dateToDateObj(a);
-    }).reverse();
+        return dateToDateObj(a) - dateToDateObj(b);
+    });
+    console.log(x_data_label);
 
     initNumdays = x_data_label.length;
     if (!numDays) {
         currentNumDays = initNumdays;
     }
 
-    var confirmedCasesTrace = getConfirmedCasesTrace(x_data_label, country, numDays);
+    var confirmedCasesTrace = getConfirmedCasesTrace(x_data_label, country, numDays, confirmed_dict);
+    var recoveredTrace = getConfirmedCasesTrace(x_data_label, country, numDays, recovered_dict);
+    var deathTrace = getConfirmedCasesTrace(x_data_label, country, numDays, death_dict);
     var final_date = confirmedCasesTrace.x_data.slice(-1)[0];
     var final_confirmed = confirmedCasesTrace.y_data.slice(-1)[0];
     var date = dateToDateObj(final_date);
+    console.log(final_date);
 
     var day = date.getDate();
     var month = date.toLocaleString('default', { month: 'long' });
@@ -179,7 +207,64 @@ async function plotData(country, numDays) {
         }
     };
 
-    var trace2 = {
+    var trace_gf = {
+        x: confirmedCasesTrace.x_data,
+        y: confirmedCasesTrace.y_data_growth,
+        name: 'Growth Factor',
+        type: 'scatter',
+        line: {
+            color: 'rgb(148, 103, 189)',
+            width: 8,
+            shape: 'spline',
+            dash: 'dot'
+        },
+        yaxis: 'y2'
+    };
+
+    data_traces = [trace1, trace_gf];
+
+    if (extraDataPlotOn == true){
+        var y_data_finished = recoveredTrace.y_data.map(function(v,i) { return (v + deathTrace.y_data[i]); });
+        var y_data_active = confirmedCasesTrace.y_data.map(function(v,i) { return (v - y_data_finished[i]); });
+        var trace_recovered = {
+            x: recoveredTrace.x_data,
+            y: recoveredTrace.y_data,
+            name: 'recovered',
+            type: 'scatter',
+            line: {
+                color: 'rgb(44, 160, 44)',
+                width: 3
+            }
+        };
+    
+        var trace_death = {
+            x: deathTrace.x_data,
+            y: deathTrace.y_data,
+            name: 'died',
+            type: 'scatter',
+            line: {
+                color: 'rgb(127, 127, 127)',
+                width: 3
+            }
+        };
+
+        var trace_active = {
+            x: confirmedCasesTrace.x_data,
+            y: y_data_active,
+            name: 'active cases',
+            type: 'scatter',
+            line: {
+                color: 'rgb(221, 175, 39)',
+                width: 3
+            }
+        };
+
+        data_traces.push(trace_recovered);
+        data_traces.push(trace_death);
+        data_traces.push(trace_active);
+    }
+
+    var trace_exp = {
         x: exponentialTrace.x_data,
         y: exponentialTrace.y_data,
         name: 'exponential',
@@ -189,8 +274,7 @@ async function plotData(country, numDays) {
             width: 5
         }
     };
-
-    data_traces = [trace1, trace2];
+    data_traces.push(trace_exp);
         
     if (logisticTrace.x_data != null) {
         var trace_logistic = {
@@ -251,11 +335,6 @@ async function plotData(country, numDays) {
         }
     }
 
-    
-
-
-
-    // var plot_title = `Cases of Covid-19 in ${country} `;
     var plot_title = `<b>Cases of Covid-19 in ${country}</b>`;
     if (logisticTrace.x_data != null) {
         plot_title = plot_title + `<br>Prediction logistic model: maximum <b>${logisticTrace.d.toFixed(0)}</b> confirmed cases`;
@@ -274,6 +353,17 @@ async function plotData(country, numDays) {
             yanchor: 'top',
             xref: 'paper',
             x: 0.05,
+        },
+        yaxis: {
+            title: '<b>Confirmed Cases</b>',
+            side: 'right'
+        },
+        yaxis2: {
+          title: '<b>Growth Factor</b>',
+          overlaying: 'y',
+          range: [0, 3],
+          showgrid: false,
+          side: 'left'
         },
         showlegend: true,
         legend: {
@@ -376,6 +466,10 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
             }
         }
 
+        if (dateCpoint == null){
+            dateCpoint = finalDateObj;
+        }
+
         return{
             x_data,
             y_data: logistic_y_data,
@@ -399,7 +493,10 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
     }
 }
 
-function getConfirmedCasesTrace(x_data_label, country, numDays){
+function getConfirmedCasesTrace(x_data_label, country, numDays, dictionary){
+
+    var y_data_growth = [];
+
 
     // leave only days from 0 - numDays
     var x_data = x_data_label
@@ -407,14 +504,38 @@ function getConfirmedCasesTrace(x_data_label, country, numDays){
         x_data = x_data_label.slice(0, numDays);
     }
 
+    var cur_y;
+    var prev_y = null;
+    var growth_factor;
+
     var y_data = [];
     x_data.forEach(function (item, index) {
-        y_data.push(dictionary[country][item]);
+        if (item in dictionary[country]) {
+            cur_y = dictionary[country][item];
+            y_data.push(cur_y);
+            if (prev_y == null){
+                y_data_growth.push(null);
+            }
+            else{
+                growth_factor = cur_y / prev_y;
+                if (cur_y > 52){
+                    y_data_growth.push(growth_factor);
+                }
+                else{
+                    y_data_growth.push(null);
+                }
+            }
+            prev_y = cur_y;
+        }
+        else{
+            y_data.push(null);
+        }
     });
 
     return{
         x_data,
-        y_data
+        y_data,
+        y_data_growth
     }
 }
 
@@ -549,6 +670,18 @@ function togglePredictionPlot(){
     }
     else{
         predictionPlotOn = false;
+    }
+    refreshAllData(currentCountry, currentNumDays);
+}
+
+function toggleExtraDataPlot(){
+    if(extraDataPlotOn == false){
+        extraDataPlotOn = true;
+        document.getElementById('extraDataPlot').innerHTML = "Plot less data";
+    }
+    else{
+        extraDataPlotOn = false;
+        document.getElementById('extraDataPlot').innerHTML = "Plot more data";
     }
     refreshAllData(currentCountry, currentNumDays);
 }

@@ -7,7 +7,7 @@ import numpy as np
 import scipy.optimize
 import requests
 import datetime
-from uncertainties import ufloat
+# from uncertainties import ufloat
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -54,13 +54,14 @@ def curve_fit_fourPL(x_data, y_data):
 
     if np.inf in [A_err, B_err, C_err, D_err] or np.isnan(A_err) or np.isnan(B_err) or np.isnan(C_err) or np.isnan(D_err):
         A_err, B_err, C_err, D_err = 0, 0, 0, 0
-    return A, B, C, D, A_err, B_err, C_err, D_err
+    # return A, B, C, D, A_err, B_err, C_err, D_err
+    return A, B, C, D
 
 
 def get_csv_data():
 
     data = {}
-    df = pandas.read_csv(r"https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv")
+    df = pandas.read_csv(r"https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
     df['Country/Region'].replace(["Korea, South"], 'South Korea', inplace=True)
     dates = list(df.columns.values)[4:]
     for index, row in df.iterrows():
