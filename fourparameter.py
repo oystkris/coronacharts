@@ -9,12 +9,18 @@ import requests
 import datetime
 # from uncertainties import ufloat
 
+import emcee
+
 script_path = os.path.dirname(os.path.realpath(__file__))
 
 def fourPL(x, A, B, C, D):
     return ((A-D)/(1.0+((x/C)**(B))) + D)
 
-def curve_fit_fourPL(x_data, y_data):
+def curve_fit_bayesian_fourPL(x_data, y_data):
+
+    return
+
+def curve_fit_least_square_fourPL(x_data, y_data):
     def max_slope(y_values):
         steepest = 0
         for i in range(len(y_values)):
