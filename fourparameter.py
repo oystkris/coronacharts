@@ -15,6 +15,8 @@ import emcee
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 
+fig, ax_shared = plt.subplots()
+
 def fourPL(x, A, B, C, D):
     return ((A-D)/(1.0+((x/C)**(B))) + D)
 
@@ -130,18 +132,23 @@ def curve_fit_least_square_fourPL(x_data, y_data):
     nom_y = unp.nominal_values(fit_y_unc)
     std_y = unp.std_devs(fit_y_unc)
 
-    fig, ax_shared = plt.subplots()
+    lower_y = nom_y - std_y
+    upper_y = nom_y + std_y
 
-    row_regression_color = 'b'
+    if len(x_data) > 40: row_regression_color = 'b'
+    else: row_regression_color = 'r'
+    
     ax_shared.plot(nom_x, nom_y, color=row_regression_color, linewidth=3)
+    # ax_shared.plot(nom_x, lower_y, color='g', linewidth=3)
+    # ax_shared.plot(nom_x, upper_y, color='r', linewidth=3)
     ax_shared.fill_between(
         nom_x,
-        nom_y - std_y,
-        nom_y + std_y,
+        lower_y,
+        upper_y,
         facecolor=row_regression_color,
         alpha=0.6
     )
-    plt.show()
+    
 
     # return A, B, C, D, A_err, B_err, C_err, D_err
     return A, B, C, D
@@ -190,7 +197,7 @@ def curve_fit_all_countries(data):
     total_count, fail_count = 0, 0
     four_pl_dict = {}
     for country, values in data.items():
-        if country != "Italy": continue
+        if country not in  ["Norway", "Italy"]: continue
         four_pl_dict[country] = {}
         x_data, y_data, x_labels = get_country_data(data, country)
         last_date = x_labels[-1]
@@ -234,3 +241,5 @@ if __name__ == "__main__":
     out_json = os.path.join(script_path, '4pl.json')
     with open(out_json, 'w') as json_file:
         json.dump(four_pl_dict, json_file, indent=4)
+
+    plt.show()
