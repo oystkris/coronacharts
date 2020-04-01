@@ -118,13 +118,17 @@ def curve_fit_least_square_fourPL(x_data, y_data):
             raise
 
     if np.inf in [A_err, B_err, C_err, D_err] or np.isnan(A_err) or np.isnan(B_err) or np.isnan(C_err) or np.isnan(D_err):
-        A_err, B_err, C_err, D_err = 0, 0, 0, 0
+        A_err, B_err, C_err, D_err = 0, 0, 0, 0 
 
+    # return A, B, C, D, A_err, B_err, C_err, D_err
+    return A, B, C, D, params_covariance
+
+def plot_unc(x_data, A, B, C, D, params_covariance):
     params_err = np.sqrt(np.diag(params_covariance))
-    a = ufloat(params[0], params_err[0])
-    b = ufloat(params[1], params_err[1])
-    c = ufloat(params[2], params_err[2])
-    d = ufloat(params[3], params_err[3])
+    a = ufloat(A, params_err[0])
+    b = ufloat(B, params_err[1])
+    c = ufloat(C, params_err[2])
+    d = ufloat(D, params_err[3])
 
     fit_x_unc = np.linspace(x_data[0], x_data[-1], 300)
     fit_y_unc = (( (a-d) / (1.0 + np.power( (fit_x_unc/c), b) ) ) + d)
@@ -148,10 +152,6 @@ def curve_fit_least_square_fourPL(x_data, y_data):
         facecolor=row_regression_color,
         alpha=0.6
     )
-    
-
-    # return A, B, C, D, A_err, B_err, C_err, D_err
-    return A, B, C, D
 
 
 def get_csv_data():
@@ -209,16 +209,13 @@ def curve_fit_all_countries(data):
                 limit_x_data, limit_y_data = np.array(x_data[:date_index]), np.array(y_data[:date_index])
 
                 try:
-                    A, B, C, D, A_err, B_err, C_err, D_err = curve_fit_least_square_fourPL(limit_x_data, limit_y_data)
+                    A, B, C, D, p_cov = curve_fit_least_square_fourPL(limit_x_data, limit_y_data)
+                    plot_unc(limit_x_data, A, B, C, D, p_cov)
                     four_pl_dict[country][date] = {
                         "A": A,
                         "B": B,
                         "C": C,
                         "D": D,
-                        "A_err": A_err,
-                        "B_err": B_err,
-                        "C_err": C_err,
-                        "D_err": D_err
                     }
                 except RuntimeError as e:
                     print(f'RuntimeError: couldnt do curvefit for {country}')
