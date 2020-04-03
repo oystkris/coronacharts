@@ -34,7 +34,7 @@ def curve_fit_fourPL(x_data, y_data):
     if len(x_data) < 4: return A, B, C, D
 
     try:
-        params, params_covariance = scipy.optimize.curve_fit(fourPL, x_data, y_data, maxfev=10000)
+        params, params_covariance = scipy.optimize.curve_fit(fourPL, x_data, y_data, maxfev=20000)
         A, B, C, D = params[0], params[1], params[2], params[3]
         err = np.sqrt(np.diag(params_covariance))
         A_err, B_err, C_err, D_err = err[0],err[1],err[2],err[3]
@@ -45,7 +45,7 @@ def curve_fit_fourPL(x_data, y_data):
             C_guess = x_data[int(len(x_data) / 2)]
             D_guess = max(y_data) * 0.95
             guess = [A_guess, B_guess, C_guess, D_guess]
-            params, params_covariance = scipy.optimize.curve_fit(fourPL, x_data, y_data, p0=guess, maxfev=10000)
+            params, params_covariance = scipy.optimize.curve_fit(fourPL, x_data, y_data, p0=guess, maxfev=20000)
             A, B, C, D = params[0], params[1], params[2], params[3]
             err = np.sqrt(np.diag(params_covariance))
             A_err, B_err, C_err, D_err = err[0],err[1],err[2],err[3]
@@ -93,7 +93,7 @@ def get_country_data(data, country):
     return x_data, y_data, x_labels
 
 def curve_fit_all_countries(data):
-    min_logistic_size = 5
+    min_logistic_size = 10
 
     total_count, fail_count = 0, 0
     four_pl_dict = {}
@@ -105,6 +105,9 @@ def curve_fit_all_countries(data):
                 total_count += 1
                 date_index = x_labels.index(date)
                 limit_x_data, limit_y_data = np.array(x_data[:date_index]), np.array(y_data[:date_index])
+
+                if limit_y_data[-1] < 100:
+                    continue
 
                 try:
                     A, B, C, D = curve_fit_fourPL(limit_x_data, limit_y_data)
