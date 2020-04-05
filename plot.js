@@ -195,6 +195,7 @@ async function plotData(country, numDays) {
     var exponentialTrace = getExponentialTrace(confirmedCasesTrace.x_data, confirmedCasesTrace.y_data);
     var logisticTrace = getLogisticTrace(confirmedCasesTrace.x_data, confirmedCasesTrace.y_data, country, final_date);
 
+
     var data_traces = [];
 
     var trace1 = {
@@ -233,7 +234,7 @@ async function plotData(country, numDays) {
             type: 'scatter',
             line: {
                 color: 'rgb(44, 160, 44)',
-                width: 3
+                width: 4
             }
         };
     
@@ -244,7 +245,7 @@ async function plotData(country, numDays) {
             type: 'scatter',
             line: {
                 color: 'rgb(127, 127, 127)',
-                width: 3
+                width: 4
             }
         };
 
@@ -255,7 +256,7 @@ async function plotData(country, numDays) {
             type: 'scatter',
             line: {
                 color: 'rgb(221, 175, 39)',
-                width: 3
+                width: 4
             }
         };
 
@@ -275,13 +276,31 @@ async function plotData(country, numDays) {
         }
     };
     data_traces.push(trace_exp);
+    
         
     if (logisticTrace.x_data != null) {
+
+        var trace_logistic_error_l = {
+            x: logisticTrace.x_data,
+            y: logisticTrace.y_data_lower,
+            name: 'logistic error lower',
+            type: 'scatter',
+            showlegend: false,
+            hoverinfo: 'none',
+            // fill: "tonexty",
+            fillcolor:'rgba(55, 128, 191,0.1)',
+            line: {
+                width: 0
+            }
+        };
+        data_traces.push(trace_logistic_error_l);
+
         var trace_logistic = {
             x: logisticTrace.x_data,
             y: logisticTrace.y_data,
             name: 'logistic',
             type: 'scatter',
+            fill: "tonexty",
             line: {
                 color: 'rgb(55, 128, 191)',
                 width: 8
@@ -289,33 +308,20 @@ async function plotData(country, numDays) {
         };
         data_traces.push(trace_logistic);
 
-        var trace_logistic_lower = {
-            x: logisticTrace.x_data,
-            y: logisticTrace.y_data_lower,
-            name: 'logistic lower bound',
-            type: 'scatter',
-            line: {
-                color: 'rgb(55, 128, 191)',
-                width: 3
-            }
-        };
-        data_traces.push(trace_logistic);
-
-        var trace_logistic_upper = {
+        var trace_logistic_error_u = {
             x: logisticTrace.x_data,
             y: logisticTrace.y_data_upper,
-            name: 'logistic upper bound',
+            name: 'logistic error upper',
             type: 'scatter',
+            showlegend: false,
+            hoverinfo: 'none',
+            fill: "tonexty",
+            fillcolor:'rgba(55, 128, 191,0.2)',
             line: {
-                color: 'rgb(55, 128, 191)',
-                width: 3
+                width: 0
             }
         };
-        data_traces.push(trace_logistic);
-        data_traces.push(trace_logistic_lower);
-        data_traces.push(trace_logistic_upper);
-
-
+        data_traces.push(trace_logistic_error_u);
 
 
         if (predictionPlotOn == true)
@@ -341,6 +347,25 @@ async function plotData(country, numDays) {
     }
     plot_title = plot_title + `<br><sup><i>Confirmed cases as of ${day} ${month} ${date.getFullYear()}: <b>${final_confirmed}</b></i></sup>`;
     plot_title = plot_title + '<br><sup><i>See model parameters in sidebar</i></sup>';
+
+    var max_error_value = Math.ceil(logisticTrace.y_data_upper[logisticTrace.y_data_upper.length - 1]) + 1;
+    var max_logistic_value = Math.ceil(logisticTrace.y_data[logisticTrace.y_data.length - 1]) + 1;
+    var max_y_value = Math.ceil(confirmedCasesTrace.y_data[confirmedCasesTrace.y_data.length - 1]) + 1;
+    var max_exp_value = Math.ceil(exponentialTrace.y_data[exponentialTrace.y_data.length - 1]) + 1;
+    var max_predict = Math.ceil(logisticTrace.y_data_predict[logisticTrace.y_data_predict.length - 1]) + 1;
+    var max_y_axis;
+
+    if (!predictionPlotOn){
+        if (max_error_value > 2 * max_y_value){
+            max_y_axis = 2 * max_y_value;
+        }
+        else{
+            max_y_axis = Math.max(max_error_value, max_logistic_value, max_y_value, max_exp_value);
+        }
+    }
+    else{
+        max_y_axis = max_predict;
+    }
     
     var layout = {
         title: {
@@ -356,6 +381,7 @@ async function plotData(country, numDays) {
         },
         yaxis: {
             title: '<b>Confirmed Cases</b>',
+            range: [0, max_y_axis],
             side: 'right'
         },
         yaxis2: {
@@ -390,6 +416,7 @@ async function plotData(country, numDays) {
 function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
 
     var log_point_list = [];
+    var log_lower_point_list = [];
     var lginf = four_parameter_json[country][finalDate];
 
     if (lginf != null){
@@ -406,16 +433,18 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
         var y_data_upper = [];
         x_data_index.forEach(function (x, index) {
             logistic_y = logistic(x, lginf.A, lginf.B, lginf.C, lginf.D);
-            logistic_y_lower = logistic(x, lginf.A, lginf.B - lginf.B_err, lginf.C + lginf.C_err, lginf.D - lginf.D_err);
-            logistic_y_upper = logistic(x, lginf.A, lginf.B + lginf.B_err, lginf.C - lginf.C_err, lginf.D + lginf.D_err);
+            logistic_y_lower = logistic(x, lginf.A_l, lginf.B_l, lginf.C_l, lginf.D_l);
+            logistic_y_upper = logistic(x, lginf.A_u, lginf.B_u, lginf.C_u, lginf.D_u);
             logistic_y_data.push(logistic_y);
             y_data_lower.push(logistic_y_lower);
             y_data_upper.push(logistic_y_upper);
             log_point_list.push([x, logistic_y]);
+            log_lower_point_list.push([x, logistic_y_lower])
             data_index = index;
         });
 
         var r2 = determinationCoefficient(x_data, confirmed_y_data, log_point_list);
+        var r2_lower = determinationCoefficient(x_data, confirmed_y_data, log_lower_point_list);
 
         var finalDateObj = dateToDateObj(finalDate);
         var finalConfirmed = confirmed_y_data.slice(-1)[0];
@@ -424,6 +453,8 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
         x_data_predict_index = x_data_index;
         x_data_predict = x_data;
         y_data_predict = [];
+        y_data_predict_lower = [];
+        y_data_predict_upper = [];
 
         var dateCpoint = null;
 
@@ -457,9 +488,13 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
             label = dateObjDateStr(nextDate);
 
             logistic_y = logistic(data_index, lginf.A, lginf.B, lginf.C, lginf.D);
+            logistic_y_lower = logistic(data_index, lginf.A_l, lginf.B_l, lginf.C_l, lginf.D_l);
+            logistic_y_upper = logistic(data_index, lginf.A_u, lginf.B_u, lginf.C_u, lginf.D_u);
             x_data_predict_index.push(data_index);
             x_data_predict.push(label);
             y_data_predict.push(logistic_y);
+            y_data_predict_lower.push(logistic_y_lower)
+            y_data_predict_upper.push(logistic_y_upper);
 
             if (data_index > 28835){
                 break;
@@ -477,11 +512,14 @@ function getLogisticTrace(x_data, confirmed_y_data, country, finalDate){
             y_data_upper,
             x_data_predict,
             y_data_predict,
+            y_data_predict_lower,
+            y_data_predict_upper,
             a: lginf.A,
             b: lginf.B, 
             c: lginf.C, 
             d: lginf.D,
             r2,
+            r2_lower,
             dateCpoint,
             date98percent: nextDate
         }
