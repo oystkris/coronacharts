@@ -286,7 +286,7 @@ def curve_fit_all_countries(data):
                 date_index = x_labels.index(date)
                 limit_x_data, limit_y_data = np.array(x_data[:date_index]), np.array(y_data[:date_index])
 
-                if limit_y_data[-1] < 500: continue
+                if limit_y_data[-1] < 200: continue
 
                 try:
                     A, B, C, D, p_cov = curve_fit_least_square_fourPL(limit_x_data, limit_y_data)
