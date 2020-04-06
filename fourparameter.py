@@ -177,7 +177,7 @@ def get_upper_lower_limits(x_data, A, B, C, D, params_covariance):
         c = ufloat(C, params_err[2])
         d = ufloat(D, params_err[3])
 
-        fit_x_unc = np.linspace(x_data[0], x_data[-1], 300)
+        fit_x_unc = np.linspace(x_data[0], len(x_data)*3, 300)
         fit_y_unc = (( (a-d) / (1.0 + np.power( (fit_x_unc/c), b) ) ) + d)
         nom_x = unp.nominal_values(fit_x_unc)
         nom_y = unp.nominal_values(fit_y_unc)
@@ -291,7 +291,7 @@ def curve_fit_all_countries(data):
                 try:
                     A, B, C, D, p_cov = curve_fit_least_square_fourPL(limit_x_data, limit_y_data)
                     A_lower, B_lower, C_lower, D_lower, A_upper, B_upper, C_upper, D_upper = get_upper_lower_limits(x_data, A, B, C, D, p_cov)
-                    plot_unc(limit_x_data, limit_y_data, A, B, C, D, A_lower, B_lower, C_lower, D_lower, A_upper, B_upper, C_upper, D_upper)
+                    # plot_unc(limit_x_data, limit_y_data, A, B, C, D, A_lower, B_lower, C_lower, D_lower, A_upper, B_upper, C_upper, D_upper)
                     four_pl_dict[country][date] = {
                         "A": round(A, 3),
                         "B": round(B, 3),
