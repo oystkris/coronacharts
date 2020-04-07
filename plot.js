@@ -129,7 +129,7 @@ async function drawEquations(parameters){
     var y_n_1 = parameters.confirmedCasesTrace.y_data.slice(-2)[0];
     var growthFactor = y_n / y_n_1;
 
-    var growth_factor_r2 = eq_size + '{\\frac{Δ N_d}{Δ N_{d-1}} = ' + growthFactor.toFixed(2).toString() + '}';
+    var growth_factor_r2 = eq_size + '{\\frac{Δ N_d}{Δ N_{d-1}} = ' + growthFactor.toFixed(3).toString() + '}';
 
     var gf_eq = document.getElementById('GrowthFactorEquation');
     katex.render(growth_factor_r2, gf_eq, {
